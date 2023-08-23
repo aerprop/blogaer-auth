@@ -1,4 +1,5 @@
 import User from './models/user';
+import RefreshToken from './models/refreshToken';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -12,58 +13,75 @@ const handleRegister = async (req, res) => {
     });
   }
 
-  try {
-    const hashPassword = await bcrypt.hash(password, 10);
+  const hashPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
-      username: username,
-      email: email,
-      password: hashPassword
+  const user = await User.create({
+    username,
+    email,
+    password: hashPassword
+  });
+
+  if (!user) {
+    return res.status(500).json({
+      status: 'Internal server error',
+      message: 'Failed to insert user data to the database'
+    });
+  }
+
+  const accessToken = jwt.sign(
+    {
+      UserInfo: {
+        id: user.id,
+        username: user.username,
+        role: user.role_id
+      }
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: '10m' }
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      UserInfo: {
+        id: user.id,
+        username: user.username,
+        role: user.role_id
+      }
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: '1d' }
+  );
+
+  try {
+    await RefreshToken.create({
+      token: refreshToken,
+      user_id: user.id
     });
 
-    if (!user) {
-      return res.status(500).json({
-        status: 'Internal server error',
-        message: 'Failed to insert user data to the database'
+    // Send secure cookie
+    res.cookie(
+      'jwt',
+      refreshToken,
+      {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: 24 * 60 * 60 * 1000
       });
-    }
 
-    const userInfo = await User.findOne({ where: { email: user.email } });
-
-    const accessToken = jwt.sign(
-      {
-        UserInfo: {
-          id: userInfo,
-          username: userInfo.username,
-          role: userInfo.role_id
-        }
-      },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: '10m'}
-    );
-    const refreshToken = jwt.sign(
-      {
-        UserInfo: {
-          id: userInfo,
-          username: userInfo.username,
-          role: userInfo.role_id
-        }
-      },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: '1d'}
-    );
-
+    // Send the response
     res.status(201).json({
       status: 'Created',
       message: 'User successfully registered',
       data: {
         username: user.username,
         email: user.email,
-        access_token: '',
-        refresh_token: ''
+        accessToken
       }
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error('Login error: ', error);
+  }
 };
 
 module.exports = { handleRegister };
