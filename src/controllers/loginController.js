@@ -4,7 +4,7 @@ import RefreshToken from './models/refreshToken';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const handleLogin = async (req, res) => {
+const loginController = async (req, res) => {
   const cookies = req.cookies;
 
   const { email, password } = req.body;
@@ -25,7 +25,9 @@ const handleLogin = async (req, res) => {
 
   const correctPassword = await bcrypt.compare(password, foundUser.password);
   if (correctPassword) {
-    const userRole = await UserRole.findOne({ where: { id: foundUser.role_id } }).role;
+    const userRole = await UserRole.findOne({
+      where: { id: foundUser.role_id }
+    }).role;
 
     const accessToken = jwt.sign(
       {
@@ -55,7 +57,9 @@ const handleLogin = async (req, res) => {
 
     if (cookies?.jwt) {
       const refreshToken = cookies.jwt;
-      const foundToken = await RefreshToken.findOne({ where: { token: refreshToken } });
+      const foundToken = await RefreshToken.findOne({
+        where: { token: refreshToken }
+      });
       // Detected refresh token reuse!
       if (!foundToken) {
         console.log('Attempted refresh token reuse at login');
@@ -78,15 +82,12 @@ const handleLogin = async (req, res) => {
         });
 
         // Send secure cookie
-        res.cookie(
-          'jwt',
-          newRefreshToken,
-          {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-            maxAge: 24 * 60 * 60 * 1000
-          });
+        res.cookie('jwt', newRefreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'None',
+          maxAge: 24 * 60 * 60 * 1000
+        });
 
         // Send the response
         res.status(200).json({
@@ -98,9 +99,14 @@ const handleLogin = async (req, res) => {
           }
         });
       } else {
-        const deletedToken = await RefreshToken.destroy({ where: { token: cookies.jwt } });
+        const deletedToken = await RefreshToken.destroy({
+          where: { token: cookies.jwt }
+        });
 
-        console.log('Deleted refresh token after reuse attempted: ', deletedToken);
+        console.log(
+          'Deleted refresh token after reuse attempted: ',
+          deletedToken
+        );
       }
     } catch (error) {
       console.error('Login error: ', error);
@@ -108,4 +114,4 @@ const handleLogin = async (req, res) => {
   }
 };
 
-export default handleLogin;
+export default loginController;

@@ -3,7 +3,7 @@ import RefreshToken from './models/refreshToken';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const handleRegister = async (req, res) => {
+const registerController = async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
@@ -59,15 +59,12 @@ const handleRegister = async (req, res) => {
     });
 
     // Send secure cookie
-    res.cookie(
-      'jwt',
-      refreshToken,
-      {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'None',
-        maxAge: 24 * 60 * 60 * 1000
-      });
+    res.cookie('jwt', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 24 * 60 * 60 * 1000
+    });
 
     // Send the response
     res.status(201).json({
@@ -84,4 +81,4 @@ const handleRegister = async (req, res) => {
   }
 };
 
-export default handleRegister;
+export default registerController;

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+const rootController = (req, res) => {
+=======
 const handleRoot = (req, res) => {
+>>>>>>> 3ff51376fa586995278947de5f7501834dd0c1c2
   try {
     res.status(200).json({
       status: 'OK',
@@ -22,4 +26,8 @@ const handleRoot = (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+export default rootController;
+=======
 export default handleRoot;
+>>>>>>> 3ff51376fa586995278947de5f7501834dd0c1c2

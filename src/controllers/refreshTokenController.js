@@ -3,7 +3,7 @@ import RefreshToken from './models/refreshToken';
 import UserRole from './models/userRole';
 import jwt from 'jsonwebtoken';
 
-const handleRefreshToken = async (req, res) => {
+const refreshTokenController = async (req, res) => {
   const cookies = req.cookies;
   if (!cookies?.jwt) return res.sendStatus(401);
 
@@ -129,4 +129,4 @@ const handleRefreshToken = async (req, res) => {
   );
 };
 
-export default handleRefreshToken;
+export default refreshTokenController;

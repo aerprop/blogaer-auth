@@ -1,7 +1,7 @@
 import User from './models/user';
 import RefreshToken from './models/refresToken';
 
-const handleLogout = async (req, res) => {
+const logoutController = async (req, res) => {
   const cookies = req.cookies;
   if (!cookies.jwt) return res.sendStatus(204);
 
@@ -16,8 +16,7 @@ const handleLogout = async (req, res) => {
       httpOnly: true,
       sameSite: 'None',
       secure: true
-    }
-    );
+    });
 
     return res.sendStatus(204);
   }
@@ -39,4 +38,4 @@ const handleLogout = async (req, res) => {
   }
 };
 
-export default handleLogout;
+export default logoutController;
