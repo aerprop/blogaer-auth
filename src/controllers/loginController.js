@@ -10,7 +10,7 @@ const handleLogin = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).status({
-      status: 'Bad request.',
+      status: 'Bad request',
       messages: 'Email and password are required.'
     });
   }
@@ -18,7 +18,7 @@ const handleLogin = async (req, res) => {
   const foundUser = await User.findOne({ where: { email } });
   if (!foundUser) {
     return res.status(404).status({
-      status: 'Not found.',
+      status: 'Not found',
       messages: `User with email of '${email}' not found.`
     });
   }
@@ -91,7 +91,7 @@ const handleLogin = async (req, res) => {
         // Send the response
         res.status(200).json({
           status: 'OK',
-          message: 'User successfully logged in',
+          message: 'User successfully logged in.',
           data: {
             accessToken,
             userRole
@@ -108,4 +108,4 @@ const handleLogin = async (req, res) => {
   }
 };
 
-module.exports = { handleLogin };
+export default handleLogin;

@@ -129,4 +129,4 @@ const handleRefreshToken = async (req, res) => {
   );
 };
 
-module.exports = { handleRefreshToken };
+export default handleRefreshToken;
