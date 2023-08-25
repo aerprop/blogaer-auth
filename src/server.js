@@ -16,6 +16,7 @@ app.use('/', require('./routes/rootRoute'));
 app.use('/register', require('./routes/registerRoute'));
 app.use('/login', require('./routes/loginRoute'));
 app.use('/logout', require('./routes/logoutRoute'));
+app.use('/refresh-token', require('./routes/refreshTokenRoute'));
 
 app.listen(PORT, () =>
   console.log(`Server running on port: ${PORT}`)
