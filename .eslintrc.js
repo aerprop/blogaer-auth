@@ -1,5 +1,6 @@
 module.exports = {
-  extends: [
-    'semistandard'
-  ]
+  extends: ['semistandard'],
+  rules: {
+    'space-before-function-paren': ['error', 'never']
+  }
 };
