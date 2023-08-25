@@ -12,8 +12,7 @@ app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/', require('./routes/root'));
-app.use('/login', require('./routes/login'));
+app.use('/', require('./routes/rootRoute'));
 
 app.listen(PORT, () =>
   console.log(`Server running on port: ${PORT}`)
