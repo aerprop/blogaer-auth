@@ -27,7 +27,8 @@ const User = (sequelize, DataTypes) => {
       },
       role_id: {
         allowNull: false,
-        type: DataTypes.TINYINT
+        type: DataTypes.TINYINT,
+        defaultValue: 2
       },
       verified: {
         type: DataTypes.BOOLEAN
