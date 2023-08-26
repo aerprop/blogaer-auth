@@ -1,6 +1,4 @@
-import User from './models/user';
-import UserRole from './models/userRole';
-import RefreshToken from './models/refreshToken';
+import Model from '../models/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -15,7 +13,7 @@ const loginController = async (req, res) => {
     });
   }
 
-  const foundUser = await User.findOne({ where: { email } });
+  const foundUser = await Model.User.findOne({ where: { email } });
   if (!foundUser) {
     return res.status(404).status({
       status: 'Not found',
@@ -25,7 +23,7 @@ const loginController = async (req, res) => {
 
   const correctPassword = await bcrypt.compare(password, foundUser.password);
   if (correctPassword) {
-    const userRole = await UserRole.findOne({
+    const userRole = await Model.UserRole.findOne({
       where: { id: foundUser.role_id }
     }).role;
 
@@ -57,7 +55,7 @@ const loginController = async (req, res) => {
 
     if (cookies?.jwt) {
       const refreshToken = cookies.jwt;
-      const foundToken = await RefreshToken.findOne({
+      const foundToken = await Model.RefreshToken.findOne({
         where: { token: refreshToken }
       });
       // Detected refresh token reuse!
@@ -76,7 +74,7 @@ const loginController = async (req, res) => {
 
     try {
       if (isNoReuseDetected) {
-        await RefreshToken.create({
+        await Model.RefreshToken.create({
           token: newRefreshToken,
           user_id: foundUser.id
         });
@@ -99,7 +97,7 @@ const loginController = async (req, res) => {
           }
         });
       } else {
-        const deletedToken = await RefreshToken.destroy({
+        const deletedToken = await Model.RefreshToken.destroy({
           where: { token: cookies.jwt }
         });
 

@@ -1,7 +1,7 @@
 'use strict';
 
-module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define(
+const User = (sequelize, DataTypes) => {
+  const user = sequelize.define(
     'User',
     {
       id: {
@@ -47,14 +47,16 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  User.associate = (models) => {
-    User.belongsTo(models.UserRole, { foreignKey: 'role_id', targetKey: 'id' });
+  user.associate = (models) => {
+    user.belongsTo(models.UserRole, { foreignKey: 'role_id', targetKey: 'id' });
 
-    User.hasMany(models.RefreshToken, {
+    user.hasMany(models.RefreshToken, {
       foreignKey: 'user_id',
       targetKey: 'id'
     });
   };
 
-  return User;
+  return user;
 };
+
+export default User;

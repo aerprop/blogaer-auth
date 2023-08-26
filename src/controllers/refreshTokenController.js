@@ -1,6 +1,4 @@
-import User from './models/user';
-import RefreshToken from './models/refreshToken';
-import UserRole from './models/userRole';
+import Model from '../models/index.js';
 import jwt from 'jsonwebtoken';
 
 const refreshTokenController = async (req, res) => {
@@ -10,9 +8,9 @@ const refreshTokenController = async (req, res) => {
   const refreshToken = cookies.jwt;
   res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
 
-  const foundUser = RefreshToken.findOne({
+  const foundUser = Model.RefreshToken.findOne({
     where: { token: refreshToken },
-    include: [User]
+    include: [Model.User]
   });
 
   // Detected refresh token reuse!
@@ -24,13 +22,13 @@ const refreshTokenController = async (req, res) => {
         // No user found
         if (err) return res.sendStatus(403);
         // User found - attempted refresh token reuse!
-        const hackedUser = await User.findOne({
+        const hackedUser = await Model.User.findOne({
           where: {
             username: decoded.id
           }
         });
         try {
-          const deletedTokens = await RefreshToken.destroy({
+          const deletedTokens = await Model.RefreshToken.destroy({
             where: {
               user_id: hackedUser.id
             }
@@ -54,7 +52,7 @@ const refreshTokenController = async (req, res) => {
       if (err) {
         console.log(`${foundUser.username}'s token expires!`);
         try {
-          const deletedTokens = await RefreshToken.destroy({
+          const deletedTokens = await Model.RefreshToken.destroy({
             where: {
               token: refreshToken
             }
@@ -65,10 +63,14 @@ const refreshTokenController = async (req, res) => {
         }
       }
 
-      if (err || foundUser.username !== decoded.username) return res.sendStatus(403);
+      if (err || foundUser.username !== decoded.username) {
+        return res.sendStatus(403);
+      }
 
       // Refresh token was still valid
-      const userRole = await UserRole.findOne({ where: { id: decoded.id } }).role;
+      const userRole = await Model.UserRole.findOne({
+        where: { id: decoded.id }
+      }).role;
 
       const accessToken = jwt.sign(
         {
@@ -96,21 +98,18 @@ const refreshTokenController = async (req, res) => {
 
       try {
         // Insert a new refresh token to the database
-        await RefreshToken.create({
+        await Model.RefreshToken.create({
           token: newRefreshToken,
           user_id: decoded.id
         });
 
         // Send secure cookie
-        res.cookie(
-          'jwt',
-          newRefreshToken,
-          {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-            maxAge: 24 * 60 * 60 * 1000
-          });
+        res.cookie('jwt', newRefreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'None',
+          maxAge: 24 * 60 * 60 * 1000
+        });
 
         // Send the response
         res.status(201).json({

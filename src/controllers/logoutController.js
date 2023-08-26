@@ -1,5 +1,4 @@
-import User from './models/user';
-import RefreshToken from './models/refresToken';
+import Model from '../models/index.js';
 
 const logoutController = async (req, res) => {
   const cookies = req.cookies;
@@ -7,9 +6,9 @@ const logoutController = async (req, res) => {
 
   const refreshToken = cookies.jwt;
 
-  const foundToken = await RefreshToken.findOne({
+  const foundToken = await Model.RefreshToken.findOne({
     where: { token: refreshToken },
-    include: [User]
+    include: [Model.User]
   });
   if (!foundToken) {
     res.clearCookie('jwt', {

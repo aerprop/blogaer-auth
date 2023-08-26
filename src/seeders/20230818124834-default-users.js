@@ -1,9 +1,10 @@
 'use strict';
-require('dotenv').config();
-const User = require('../models').User;
-const bcrypt = require('bcrypt');
+import Model from '../models';
+import bcrypt from 'bcrypt';
+import { config } from 'dotenv';
 
-module.exports = {
+config();
+export default {
   async up(queryInterface, Sequelize) {
     const userData = [
       {
@@ -19,7 +20,7 @@ module.exports = {
     ];
 
     const createUserData = async (user) => {
-      return await User.create({
+      return await Model.User.create({
         ...user,
         password: bcrypt.hashSync(process.env.USER_PASSWORD, 8),
         picture: null,

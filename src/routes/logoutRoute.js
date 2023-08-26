@@ -1,4 +1,4 @@
-import express from 'express';
-import logoutController from '../controllers/logoutController';
+import { Router } from 'express';
+import logoutController from '../controllers/logoutController.js';
 
-export const logoutRoute = express.Router().get('/', logoutController);
+export default Router().get('/logout', logoutController);

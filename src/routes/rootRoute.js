@@ -1,4 +1,4 @@
-import express from 'express';
-import rootController from '../controllers/rootController';
+import { Router } from 'express';
+import rootController from '../controllers/rootController.js';
 
-export const rootRoute = express.Router().get('/', rootController);
+export default Router().get('/', rootController);

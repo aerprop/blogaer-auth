@@ -1,5 +1,4 @@
-import User from './models/user';
-import RefreshToken from './models/refreshToken';
+import Model from '../models/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -15,7 +14,7 @@ const registerController = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const user = await User.create({
+  const user = await Model.User.create({
     username,
     email,
     password: hashPassword
@@ -53,7 +52,7 @@ const registerController = async (req, res) => {
   );
 
   try {
-    await RefreshToken.create({
+    await Model.RefreshToken.create({
       token: refreshToken,
       user_id: user.id
     });

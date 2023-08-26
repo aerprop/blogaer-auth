@@ -1,6 +1,7 @@
 'use strict';
-module.exports = (sequelize, DataTypes) => {
-  const RefreshToken = sequelize.define(
+
+const RefreshToken = (sequelize, DataTypes) => {
+  const refreshToken = sequelize.define(
     'RefreshToken',
     {
       token: {
@@ -18,12 +19,14 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  RefreshToken.associate = (models) => {
-    RefreshToken.belongsTo(models.User, {
+  refreshToken.associate = (models) => {
+    refreshToken.belongsTo(models.User, {
       foreignKey: 'user_id',
       targetKey: 'id'
     });
   };
 
-  return RefreshToken;
+  return refreshToken;
 };
+
+export default RefreshToken;

@@ -1,22 +1,23 @@
 import express from 'express';
 import cors from 'cors';
-import corsOptions from './config/corsOptions';
+import corsOptions from './config/corsOptions.js';
 import cookieParser from 'cookie-parser';
-require('dotenv').config();
+import routes from './routes/index.js';
+import { config } from 'dotenv';
 
-const PORT = process.env.PORT || 3939;
-
+config();
 const app = express();
+const PORT = process.env.PORT || 3939;
 
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/', require('./routes/rootRoute'));
-app.use('/register', require('./routes/registerRoute'));
-app.use('/login', require('./routes/loginRoute'));
-app.use('/logout', require('./routes/logoutRoute'));
-app.use('/refresh-token', require('./routes/refreshTokenRoute'));
+app.use(routes.root);
+app.use(routes.register);
+app.use(routes.login);
+app.use(routes.logout);
+app.use(routes.refresh);
 
 app.listen(PORT, () =>
   console.log(`Server running on port: ${PORT}`)

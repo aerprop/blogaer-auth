@@ -1,15 +1,17 @@
 'use strict';
 
-module.exports = (sequelize, DataTypes) => {
-  const UserRole = sequelize.define('UserRole', {
+const UserRole = (sequelize, DataTypes) => {
+  const userRole = sequelize.define('UserRole', {
     role: {
       allowNull: false,
       type: DataTypes.STRING
     }
   });
 
-  UserRole.associate = (models) => {
-    UserRole.hasMany(models.User, { foreignKey: 'role_id', targetKey: 'id' });
+  userRole.associate = (models) => {
+    userRole.hasMany(models.User, { foreignKey: 'role_id', targetKey: 'id' });
   };
-  return UserRole;
+  return userRole;
 };
+
+export default UserRole;
