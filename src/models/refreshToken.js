@@ -1,5 +1,5 @@
 'use strict';
-module.exports = (sequelize, DataTypes) => {
+const refreshToken = (sequelize, DataTypes) => {
   const RefreshToken = sequelize.define(
     'RefreshToken',
     {
@@ -27,3 +27,5 @@ module.exports = (sequelize, DataTypes) => {
 
   return RefreshToken;
 };
+
+export default refreshToken;

@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (sequelize, DataTypes) => {
+const userRole = (sequelize, DataTypes) => {
   const UserRole = sequelize.define('UserRole', {
     role: {
       allowNull: false,
@@ -13,3 +13,5 @@ module.exports = (sequelize, DataTypes) => {
   };
   return UserRole;
 };
+
+export default userRole;
