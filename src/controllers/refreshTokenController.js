@@ -3,18 +3,29 @@ import jwt from 'jsonwebtoken';
 
 const refreshTokenController = async (req, res) => {
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(401);
+  if (!cookies?.jwt) {
+    return res.status(401).json({
+      status: 'Unauthorized',
+      message: 'No jwt cookie provided.'
+    });
+  }
 
   const refreshToken = cookies.jwt;
   res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
 
-  const foundUser = Model.RefreshToken.findOne({
+  const foundToken = await Model.RefreshToken.findOne({
     where: { token: refreshToken },
-    include: [Model.User]
+    include: [
+      {
+        model: Model.User,
+        attributes: ['username', 'role_id']
+      }
+    ]
   });
 
   // Detected refresh token reuse!
-  if (!foundUser) {
+  if (!foundToken) {
+    console.log('Attempted refresh token reuse at refresh token route');
     jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET,
@@ -24,7 +35,7 @@ const refreshTokenController = async (req, res) => {
         // User found - attempted refresh token reuse!
         const hackedUser = await Model.User.findOne({
           where: {
-            username: decoded.id
+            username: decoded.UserInfo.username
           }
         });
         try {
@@ -50,33 +61,51 @@ const refreshTokenController = async (req, res) => {
     process.env.REFRESH_TOKEN_SECRET,
     async (err, decoded) => {
       if (err) {
-        console.log(`${foundUser.username}'s token expires!`);
+        console.log(`${decoded.UserInfo.username}'s token expires!`);
         try {
           const deletedTokens = await Model.RefreshToken.destroy({
             where: {
               token: refreshToken
             }
           });
-          console.log(`Deleted ${decoded.username}'s token:`, deletedTokens);
+
+          console.log(
+            `Deleted ${decoded.UserInfo.username}'s token:`,
+            deletedTokens
+          );
+
+          return res.status(403).json({
+            status: 'Forbidden',
+            message: `User ${decoded.UserInfo.username}'s token expires`
+          });
         } catch (error) {
-          console.log(`Deleted tokens error: ${error}`);
+          console.error('Refresh', error);
+
+          return res.status(500).json({
+            status: 'Internal server error',
+            message: `Delete refresh token error: ${error}.`
+          });
         }
       }
 
-      if (err || foundUser.username !== decoded.username) {
-        return res.sendStatus(403);
+      if (foundToken.User.username !== decoded.UserInfo.username) {
+        return res.status(403).json({
+          status: 'Forbidden',
+          message: `User ${foundToken.User.username}'s username doesn't match token data.`
+        });
       }
 
       // Refresh token was still valid
       const userRole = await Model.UserRole.findOne({
-        where: { id: decoded.id }
-      }).role;
+        where: { id: foundToken.User.role_id },
+        attributes: ['role']
+      });
 
       const accessToken = jwt.sign(
         {
           UserInfo: {
-            id: decoded.id,
-            username: decoded.username,
+            id: decoded.UserInfo.id,
+            username: decoded.UserInfo.username,
             role: userRole.role
           }
         },
@@ -87,9 +116,8 @@ const refreshTokenController = async (req, res) => {
       const newRefreshToken = jwt.sign(
         {
           UserInfo: {
-            id: decoded.id,
-            username: decoded.username,
-            role: userRole.role
+            id: decoded.UserInfo.id,
+            username: decoded.UserInfo.username
           }
         },
         process.env.REFRESH_TOKEN_SECRET,
@@ -97,11 +125,11 @@ const refreshTokenController = async (req, res) => {
       );
 
       try {
-        // Insert a new refresh token to the database
-        await Model.RefreshToken.create({
-          token: newRefreshToken,
-          user_id: decoded.id
-        });
+        // Update the refresh token
+        await foundToken.update(
+          { token: refreshToken },
+          { where: { token: refreshToken } }
+        );
 
         // Send secure cookie
         res.cookie('jwt', newRefreshToken, {
@@ -112,17 +140,22 @@ const refreshTokenController = async (req, res) => {
         });
 
         // Send the response
-        res.status(201).json({
+        return res.status(201).json({
           status: 'Created',
           message: 'New refresh toke created successfully',
           data: {
-            username: decoded.username,
+            username: decoded.UserInfo.username,
             accessToken,
             userRole
           }
         });
       } catch (error) {
-        console.error('Create new refresh token error: ', error);
+        console.error('Refresh token', error);
+
+        return res.status(500).json({
+          status: 'Internal server error',
+          message: `Refresh token error: ${error}.`
+        });
       }
     }
   );

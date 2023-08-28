@@ -4,18 +4,14 @@ import jwt from 'jsonwebtoken';
 
 const loginController = async (req, res) => {
   const cookies = req.cookies;
-
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).status({
-      status: 'Bad request',
-      messages: 'Email and password are required.'
-    });
-  }
 
-  const foundUser = await Model.User.findOne({ where: { email } });
+  const foundUser = await Model.User.findOne({
+    where: { email },
+    attributes: ['id', 'username', 'password', 'role_id']
+  });
   if (!foundUser) {
-    return res.status(404).status({
+    return res.status(404).json({
       status: 'Not found',
       messages: `User with email of '${email}' not found.`
     });
@@ -24,8 +20,9 @@ const loginController = async (req, res) => {
   const correctPassword = await bcrypt.compare(password, foundUser.password);
   if (correctPassword) {
     const userRole = await Model.UserRole.findOne({
-      where: { id: foundUser.role_id }
-    }).role;
+      where: { id: foundUser.role_id },
+      attributes: ['role']
+    });
 
     const accessToken = jwt.sign(
       {
@@ -43,8 +40,7 @@ const loginController = async (req, res) => {
       {
         UserInfo: {
           id: foundUser.id,
-          username: foundUser.username,
-          role: userRole.role
+          username: foundUser.username
         }
       },
       process.env.REFRESH_TOKEN_SECRET,
@@ -90,7 +86,7 @@ const loginController = async (req, res) => {
         // Send the response
         res.status(200).json({
           status: 'OK',
-          message: 'User successfully logged in.',
+          message: `User ${foundUser.username} successfully logged in.`,
           data: {
             accessToken,
             userRole
@@ -107,8 +103,18 @@ const loginController = async (req, res) => {
         );
       }
     } catch (error) {
-      console.error('Login error: ', error);
+      console.error('Login', error);
+
+      return res.status(500).json({
+        status: 'Internal server error',
+        message: `Login error: ${error}.`
+      });
     }
+  } else {
+    return res.status(401).json({
+      status: 'Unauthorized',
+      message: 'Incorrect password. Please check your password and try again.'
+    });
   }
 };
 

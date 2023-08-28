@@ -17,7 +17,7 @@ const rootController = (req, res) => {
   } catch (error) {
     res.status(500).json({
       status: 'Internal server error',
-      message: `Root route error: ${error}`
+      message: `Request api data error: ${error}`
     });
   }
 };

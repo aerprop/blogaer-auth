@@ -6,6 +6,9 @@ const UserRole = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.STRING
     }
+  },
+  {
+    tableName: 'user_roles'
   });
 
   userRole.associate = (models) => {

@@ -4,6 +4,12 @@ const RefreshToken = (sequelize, DataTypes) => {
   const refreshToken = sequelize.define(
     'RefreshToken',
     {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: DataTypes.INTEGER
+      },
       token: {
         allowNull: false,
         type: DataTypes.STRING

@@ -8,7 +8,12 @@ const logoutController = async (req, res) => {
 
   const foundToken = await Model.RefreshToken.findOne({
     where: { token: refreshToken },
-    include: [Model.User]
+    include: [
+      {
+        model: Model.User,
+        attributes: ['username']
+      }
+    ]
   });
   if (!foundToken) {
     res.clearCookie('jwt', {
@@ -31,9 +36,20 @@ const logoutController = async (req, res) => {
       secure: true
     });
 
-    res.sendStatus(204);
+    return res.status(200).json({
+      status: 'OK',
+      message: `${foundToken.User.username} has successfully logged out.`
+    });
   } catch (error) {
-    console.error('Logout error: ', error);
+    console.error('Logout', error);
+
+    return res.status(500).json({
+      status: 'Internal server error',
+      message: `Logout error: ${error}.`,
+      data: {
+        user: foundToken.User.username
+      }
+    });
   }
 };
 

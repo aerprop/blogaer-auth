@@ -4,14 +4,6 @@ import jwt from 'jsonwebtoken';
 
 const registerController = async (req, res) => {
   const { username, email, password } = req.body;
-
-  if (!username || !email || !password) {
-    return res.status(400).json({
-      status: 'Bad request',
-      message: 'Username, email and password are required.'
-    });
-  }
-
   const hashPassword = await bcrypt.hash(password, 10);
 
   const user = await Model.User.create({
@@ -43,8 +35,7 @@ const registerController = async (req, res) => {
     {
       UserInfo: {
         id: user.id,
-        username: user.username,
-        role: user.role_id
+        username: user.username
       }
     },
     process.env.REFRESH_TOKEN_SECRET,
@@ -76,7 +67,12 @@ const registerController = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error: ', error);
+    console.error('Register', error);
+
+    return res.status(500).json({
+      status: 'Internal server error',
+      message: `Register error: ${error}.`
+    });
   }
 };
 
