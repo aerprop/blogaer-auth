@@ -10,14 +10,18 @@ build/
 logs
 
 # Docker
-Dockerfile
-.dockerignore
+# Dockerfile
+# .dockerignore
+# Dockerfile.dev
 
 # Sequelize
 sequelize-config.js
 /migrations/
 /seeders/
 /models/
+
+# Build dir (Babel)
+.dist
 
 # IDE/Editor specific
 .vscode/
