@@ -13,11 +13,11 @@ app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(routes.root);
-app.use(routes.register);
-app.use(routes.login);
-app.use(routes.logout);
-app.use(routes.refresh);
+const routePaths = Object.keys(routes);
+
+routePaths.forEach(path => {
+  app.use(routes[path]);
+});
 
 app.listen(PORT, () =>
   console.log(`Server running on port: ${PORT}`)
