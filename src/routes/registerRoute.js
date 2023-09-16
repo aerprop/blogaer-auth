@@ -4,7 +4,7 @@ import registerController from '../controllers/registerController.js';
 import validateResult from '../middlewares/validateRequest.js';
 
 const router = Router().post(
-  '/register',
+  `${process.env.BASE_ROUTE}/register`,
   [
     body('email').isEmail().withMessage('Not a valid email address.'),
     body('password')
