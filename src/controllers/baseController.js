@@ -1,4 +1,4 @@
-const rootController = (req, res) => {
+const baseController = (req, res) => {
   try {
     res.status(200).json({
       status: 'OK',
@@ -22,4 +22,4 @@ const rootController = (req, res) => {
   }
 };
 
-export default rootController;
+export default baseController;
