@@ -1,6 +1,6 @@
 import http from 'http';
 
-const blogPostProxyController = (req, res) => {
+const blogPostController = (req, res) => {
   const role = req.role;
   console.log('two: ', role);
 
@@ -31,4 +31,4 @@ const blogPostProxyController = (req, res) => {
   }
 };
 
-export default blogPostProxyController;
+export default blogPostController;
