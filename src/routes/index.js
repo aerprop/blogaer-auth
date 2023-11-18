@@ -3,7 +3,7 @@ import registerRoute from './registerRoute.js';
 import loginRoute from './loginRoute.js';
 import logoutRoute from './logoutRoute.js';
 import refreshTokenRoute from './refreshTokenRoute.js';
-import blogPostProxyRoute from './blogPostProxyRoute.js';
+import blogPostRoute from './blogPostRoute.js';
 
 const routes = {};
 
@@ -12,6 +12,6 @@ routes.register = registerRoute;
 routes.login = loginRoute;
 routes.logout = logoutRoute;
 routes.refresh = refreshTokenRoute;
-routes.blogPost = blogPostProxyRoute;
+routes.blogPost = blogPostRoute;
 
 export default routes;
