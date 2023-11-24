@@ -1,7 +1,7 @@
 'use strict';
 import Sequelize from 'sequelize';
 import process from 'process';
-import config from '../config/config.js';
+import config from '../config/sequelizeConfig.js';
 import User from './user.js';
 import UserRole from './userRole.js';
 import RefreshToken from './refreshToken.js';
@@ -9,6 +9,7 @@ import RefreshToken from './refreshToken.js';
 const env = process.env.NODE_ENV || 'development';
 const Model = {};
 
+/** @type {import('sequelize')} */
 let sequelize;
 if (config[env].use_env_variable) {
   sequelize = new Sequelize(
@@ -27,7 +28,7 @@ if (config[env].use_env_variable) {
 sequelize
   .authenticate()
   .then(() => {
-    console.log('Connection has been established successfully.');
+    console.log('Connected to mysql.');
   })
   .catch((error) => {
     console.error('Unable to connect to the database', error);

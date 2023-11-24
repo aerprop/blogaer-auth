@@ -88,8 +88,9 @@ const loginController = async (req, res) => {
           status: 'OK',
           message: `User ${foundUser.username} successfully logged in.`,
           data: {
-            accessToken,
-            userRole
+            username: foundUser.username,
+            role: userRole,
+            token: accessToken
           }
         });
       } else {
