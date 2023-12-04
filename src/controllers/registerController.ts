@@ -1,8 +1,15 @@
-import Models from '../models/index.js';
+import { Request, Response } from 'express';
+import Models from '../models';
 import bcrypt from 'bcrypt';
 
-const registerController = async (req, res) => {
-  const { username, email, password } = req.body;
+type ReqBody = {
+  username: string,
+  email: string,
+  password: string
+}
+
+const registerController = async (req: Request, res: Response) => {
+  const { username, email, password }: ReqBody = req.body;
   const hashPassword = await bcrypt.hash(password, 10);
 
   try {

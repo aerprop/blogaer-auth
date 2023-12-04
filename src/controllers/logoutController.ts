@@ -1,24 +1,37 @@
-import Model from '../models/index.js';
+import { Request, Response } from 'express';
+import Models from '../models';
+import RefreshToken from '../models/refreshToken';
 
-const logoutController = async (req, res) => {
-  const cookies = req.cookies;
+type Cookies = {
+  jwt: string
+}
+
+type RefreshTokenJoinUser = RefreshToken & {
+  User: {
+    username: string
+  }
+}
+
+const logoutController = async (req: Request, res: Response) => {
+  const cookies: Cookies = req.cookies;
   if (!cookies.jwt) return res.sendStatus(204);
 
   const refreshToken = cookies.jwt;
 
-  const foundToken = await Model.RefreshToken.findOne({
+  const foundToken = await Models.RefreshToken.findOne({
     where: { token: refreshToken },
     include: [
       {
-        model: Model.User,
+        model: Models.User,
         attributes: ['username']
       }
     ]
-  });
+  }) as RefreshTokenJoinUser;
+
   if (!foundToken) {
     res.clearCookie('jwt', {
       httpOnly: true,
-      sameSite: 'None',
+      sameSite: 'none',
       secure: true
     });
 
@@ -26,13 +39,13 @@ const logoutController = async (req, res) => {
   }
 
   try {
-    await foundToken.destroy({
+    await Models.RefreshToken.destroy({
       where: { token: refreshToken }
     });
 
     res.clearCookie('jwt', {
       httpOnly: true,
-      sameSite: 'None',
+      sameSite: 'none',
       secure: true
     });
 

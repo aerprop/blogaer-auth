@@ -1,4 +1,6 @@
-const baseController = (req, res) => {
+import { Request, Response } from "express";
+
+const baseController = (_: Request, res: Response) => {
   try {
     res.status(200).json({
       status: 'OK',

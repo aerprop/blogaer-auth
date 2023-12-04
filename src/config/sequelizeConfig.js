@@ -1,3 +1,4 @@
+require('@babel/register')({ extensions: ['.ts', '.js'] });
 require('dotenv').config();
 
 module.exports = {

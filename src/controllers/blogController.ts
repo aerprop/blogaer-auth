@@ -1,14 +1,14 @@
+import { Request, Response } from "express";
 import http from 'http';
 import { channel } from '../config/rabbitMQConfig';
 
 const blogController = {
-  /** @param {Response} res */
-  async insert(req, res) {
+  async insert(req: Request, res: Response) {
     if (channel !== null) {
       try {
         channel.assertQueue('blog_post');
         channel.sendToQueue('blog_post', Buffer.from('test blog post!!!'));
-        console.log(res.body);
+        console.log(req.body);
       } catch (err) {
         console.log('blogPost: ', err);
       }
@@ -22,7 +22,7 @@ const blogController = {
       };
 
       const proxy = http.request(options, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        res.writeHead(proxyRes.statusCode as number, proxyRes.headers);
         proxyRes.pipe(res, { end: true });
       });
 

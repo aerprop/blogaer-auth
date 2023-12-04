@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import loginController from '../controllers/loginController.js';
-import validateResult from '../middlewares/validateRequest.js';
+import loginController from '../controllers/loginController';
+import validateResult from '../middlewares/validateRequest';
 import { body } from 'express-validator';
 
 const router = Router().post(

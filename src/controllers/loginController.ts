@@ -1,12 +1,13 @@
-import Model from '../models/index.js';
+import Models from '../models';
 import bcrypt from 'bcrypt';
+import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
-const loginController = async (req, res) => {
+const loginController = async (req: Request, res: Response) => {
   const cookies = req.cookies;
   const { email, password } = req.body;
 
-  const foundUser = await Model.User.findOne({
+  const foundUser = await Models.User.findOne({
     where: { email },
     attributes: ['id', 'username', 'password', 'role_id']
   });
@@ -19,10 +20,12 @@ const loginController = async (req, res) => {
 
   const correctPassword = await bcrypt.compare(password, foundUser.password);
   if (correctPassword) {
-    const userRole = await Model.UserRole.findOne({
+    const userRole = await Models.UserRole.findOne({
       where: { id: foundUser.role_id },
       attributes: ['role']
     });
+
+    if (!userRole) throw new Error('No role found!')
 
     const accessToken = jwt.sign(
       {
@@ -32,7 +35,7 @@ const loginController = async (req, res) => {
           role: userRole.role
         }
       },
-      process.env.ACCESS_TOKEN_SECRET,
+      process.env.ACCESS_TOKEN_SECRET as string,
       { expiresIn: '10m' }
     );
 
@@ -43,7 +46,7 @@ const loginController = async (req, res) => {
           username: foundUser.username
         }
       },
-      process.env.REFRESH_TOKEN_SECRET,
+      process.env.REFRESH_TOKEN_SECRET as string,
       { expiresIn: '1d' }
     );
 
@@ -51,7 +54,7 @@ const loginController = async (req, res) => {
 
     if (cookies?.jwt) {
       const refreshToken = cookies.jwt;
-      const foundToken = await Model.RefreshToken.findOne({
+      const foundToken = await Models.RefreshToken.findOne({
         where: { token: refreshToken }
       });
       // Detected refresh token reuse!
@@ -63,14 +66,14 @@ const loginController = async (req, res) => {
 
       res.clearCookie('jwt', {
         httpOnly: true,
-        sameSite: 'None',
+        sameSite: false,
         secure: true
       });
     }
 
     try {
-      if (isNoReuseDetected) {
-        await Model.RefreshToken.create({
+      if (isNoReuseDetected && foundUser.id) {
+        await Models.RefreshToken.create({
           token: newRefreshToken,
           user_id: foundUser.id
         });
@@ -79,7 +82,7 @@ const loginController = async (req, res) => {
         res.cookie('jwt', newRefreshToken, {
           httpOnly: true,
           secure: true,
-          sameSite: 'None',
+          sameSite: false,
           maxAge: 24 * 60 * 60 * 1000
         });
 
@@ -94,7 +97,7 @@ const loginController = async (req, res) => {
           }
         });
       } else {
-        const deletedToken = await Model.RefreshToken.destroy({
+        const deletedToken = await Models.RefreshToken.destroy({
           where: { token: cookies.jwt }
         });
 

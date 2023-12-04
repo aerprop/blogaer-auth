@@ -1,9 +1,9 @@
-import baseRoute from './baseRoute.js';
-import registerRoute from './registerRoute.js';
-import loginRoute from './loginRoute.js';
-import logoutRoute from './logoutRoute.js';
-import refreshTokenRoute from './refreshTokenRoute.js';
-import blogRoute from './blogRoute.js';
+import baseRoute from './baseRoute';
+import registerRoute from './registerRoute';
+import loginRoute from './loginRoute';
+import logoutRoute from './logoutRoute';
+import refreshTokenRoute from './refreshTokenRoute';
+import blogRoute from './blogRoute';
 import { RequestHandler } from 'express';
 
 type Routes = {
