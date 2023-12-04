@@ -7,7 +7,16 @@ import User from './user';
 import UserRole from './userRole';
 import RefreshToken from './refreshToken';
 
-const env = process.env.NODE_ENV || 'development';
+interface SequelizeConfig {
+  development: {
+    username: string | undefined;
+    password: string | undefined;
+    database: string | undefined;
+    host: string | undefined;
+    dialect: string;
+    use_env_variable?: string;
+  };
+}
 
 type Models = {
   User: ReturnType<typeof User>;
@@ -18,17 +27,18 @@ type Models = {
 }
 
 let sequelizeObj: Sequelize;
-if (sequelizeConfig[env].use_env_variable) {
+const config: SequelizeConfig['development'] = sequelizeConfig.development
+if (config.use_env_variable) {
   sequelizeObj = new Sequelize(
-    process.env[sequelizeConfig[env].use_env_variable] as string,
-    sequelizeConfig[env]
+    process.env[config.use_env_variable] as string,
+    config as any
   );
 } else {
   sequelizeObj = new Sequelize(
-    sequelizeConfig[env].database,
-    sequelizeConfig[env].username,
-    sequelizeConfig[env].password,
-    sequelizeConfig[env]
+    config.database as string,
+    config.username as string,
+    config.password as string,
+    config as any
   );
 }
 
