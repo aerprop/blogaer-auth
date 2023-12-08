@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import Models from '../models';
-import jwt, { GetPublicKeyOrSecret, JwtPayload, Secret, VerifyCallback, VerifyErrors } from 'jsonwebtoken';
+import jwt, { JwtPayload, Secret, VerifyCallback, VerifyErrors } from 'jsonwebtoken';
 import RefreshToken from '../models/refreshToken';
-import User from '../models/user';
 
 type Decoded = {
   UserInfo: {
@@ -16,7 +15,10 @@ type Cookies = {
 }
 
 type RefreshTokenJoinUser = RefreshToken & {
-  User: User
+  User: {
+    username: string,
+    role_id: string
+  }
 }
 
 const refreshTokenController = async (req: Request, res: Response) => {
@@ -155,7 +157,7 @@ const refreshTokenController = async (req: Request, res: Response) => {
           res.cookie('jwt', newRefreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: 'none',
+            sameSite: 'lax',
             maxAge: 24 * 60 * 60 * 1000
           });
 

@@ -3,22 +3,23 @@ import Models from '../models';
 import RefreshToken from '../models/refreshToken';
 
 type Cookies = {
-  jwt: string
-}
+  jwt: string;
+};
 
 type RefreshTokenJoinUser = RefreshToken & {
   User: {
-    username: string
-  }
-}
+    username: string;
+  };
+};
 
 const logoutController = async (req: Request, res: Response) => {
   const cookies: Cookies = req.cookies;
+  console.log(cookies);
   if (!cookies.jwt) return res.sendStatus(204);
 
   const refreshToken = cookies.jwt;
 
-  const foundToken = await Models.RefreshToken.findOne({
+  const foundToken = (await Models.RefreshToken.findOne({
     where: { token: refreshToken },
     include: [
       {
@@ -26,7 +27,7 @@ const logoutController = async (req: Request, res: Response) => {
         attributes: ['username']
       }
     ]
-  }) as RefreshTokenJoinUser;
+  })) as RefreshTokenJoinUser;
 
   if (!foundToken) {
     res.clearCookie('jwt', {
