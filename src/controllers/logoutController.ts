@@ -32,8 +32,8 @@ const logoutController = async (req: Request, res: Response) => {
   if (!foundToken) {
     res.clearCookie('jwt', {
       httpOnly: true,
-      sameSite: 'none',
-      secure: true
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: 'lax'
     });
 
     return res.sendStatus(204);
