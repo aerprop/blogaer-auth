@@ -147,28 +147,18 @@ const refreshTokenController = async (req: Request, res: Response) => {
         );
 
         try {
-          // Update the refresh token
           await foundToken.update(
             { token: refreshToken },
             { where: { token: refreshToken } }
           );
 
-          // Send secure cookie
-          res.cookie('jwt', newRefreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            maxAge: 24 * 60 * 60 * 1000
-          });
-
-          // Send the response
-          return res.status(201).json({
+          return res.status(200).json({
             status: 'Created',
-            message: 'New refresh toke created successfully',
+            message: 'New refresh token created successfully',
             data: {
               username: decodedToken.UserInfo.username,
-              accessToken,
-              userRole
+              token: accessToken,
+              refresh: newRefreshToken
             }
           });
         } catch (error) {

@@ -5,10 +5,12 @@ import cookieParser from 'cookie-parser';
 import routes from './routes/index';
 import verifyToken from './middlewares/verifyToken';
 import { rabbitMQConnection } from './config/rabbitMQConfig';
+import credentials from './middlewares/credentials';
 
 const app = express();
 const PORT = process.env.PORT || 3939;
 
+app.use(credentials)
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

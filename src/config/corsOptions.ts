@@ -2,7 +2,7 @@ import { CorsOptions } from 'cors';
 import { config } from 'dotenv';
 
 config();
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || '';
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',');
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {

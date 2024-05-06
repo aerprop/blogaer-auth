@@ -57,14 +57,6 @@ const registerController = [
       user_id: user.id
     });
 
-    // Send secure cookie
-    res.cookie('jwt', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000
-    });
-
     res.status(201).json({
       status: 'Created',
       message: 'User successfully registered',
@@ -72,7 +64,8 @@ const registerController = [
         username: user.username,
         email: user.email,
         role: user.role_id === 2 ? 'Author' : 'Admin',
-        token: accessToken
+        token: accessToken,
+        refresh: refreshToken
       }
     });
   } catch (error) {

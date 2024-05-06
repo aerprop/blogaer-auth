@@ -11,6 +11,7 @@ const loginController = [
   validateRequest,
   async (req: Request, res: Response) => {
     const cookies = req.cookies;
+    
     const { email, password } = req.body;
 
     const foundUser = await Models.User.findOne({
@@ -68,7 +69,7 @@ const loginController = [
         res.clearCookie('jwt', {
           httpOnly: true,
           sameSite: false,
-          secure: true
+          secure: process.env.NODE_ENV !== 'development'
         });
       }
 
@@ -79,14 +80,6 @@ const loginController = [
             user_id: foundUser.id
           });
 
-          // Send secure cookie
-          res.cookie('jwt', newRefreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
-            sameSite: 'lax',  
-            maxAge: 24 * 60 * 60 * 1000
-          });
-
           // Send the response
           res.status(200).json({
             status: 'OK',
@@ -95,7 +88,8 @@ const loginController = [
               username: foundUser.username,
               email: foundUser.email,
               role: foundUser.role_id === 2 ? 'Author' : 'Admin',
-              token: accessToken
+              token: accessToken,
+              refresh: newRefreshToken
             }
           });
         } else {

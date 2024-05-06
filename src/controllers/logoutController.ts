@@ -14,7 +14,7 @@ type RefreshTokenJoinUser = RefreshToken & {
 
 const logoutController = async (req: Request, res: Response) => {
   const cookies: Cookies = req.cookies;
-  console.log(cookies);
+
   if (!cookies.jwt) return res.sendStatus(204);
 
   const refreshToken = cookies.jwt;
@@ -29,11 +29,13 @@ const logoutController = async (req: Request, res: Response) => {
     ]
   })) as RefreshTokenJoinUser;
 
+  console.log('logout.ts 32: ', foundToken);
+
   if (!foundToken) {
     res.clearCookie('jwt', {
       httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-      sameSite: 'lax'
+      secure: true,
+      sameSite: 'none'
     });
 
     return res.sendStatus(204);
@@ -46,8 +48,8 @@ const logoutController = async (req: Request, res: Response) => {
 
     res.clearCookie('jwt', {
       httpOnly: true,
-      sameSite: 'none',
-      secure: true
+      secure: true,
+      sameSite: 'none'
     });
 
     return res.status(200).json({
