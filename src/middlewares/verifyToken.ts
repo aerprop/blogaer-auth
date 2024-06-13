@@ -11,13 +11,16 @@ type Decoded = {
 type VerifyToken = { username?: string; role?: string }
 
 const verifyToken = (req: Request & VerifyToken, res: Response, next: NextFunction) => {
-  const header = (req.headers.authorization || req.headers.Authorization) as string;
+  const header = req.headers.authorization;
+  console.log('header', header);
   if (!header?.startsWith('Bearer')) {
     return res.status(401).json({
       status: 'Unauthorized',
       message: "Token Doesn't start with Bearer."
     });
   }
+
+  
 
   const token = header.split(' ')[1];
   const secret = process.env.ACCESS_TOKEN_SECRET || ''

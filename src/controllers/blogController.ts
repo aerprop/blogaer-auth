@@ -1,39 +1,12 @@
-import { Request, Response } from "express";
-import http from 'http';
-import { channel } from '../config/rabbitMQConfig';
+import { Request, Response } from 'express';
 
 const blogController = {
   async insert(req: Request, res: Response) {
-    if (channel !== null) {
-      try {
-        channel.assertQueue('blog_post');
-        channel.sendToQueue('blog_post', Buffer.from('test blog post!!!'));
-        console.log(req.body);
-      } catch (err) {
-        console.log('blogPost: ', err);
-      }
-    } else {
-      const options = {
-        hostname: process.env.DEV_HOST,
-        port: 3032,
-        path: req.url,
-        method: req.method,
-        headers: req.headers
-      };
-
-      const proxy = http.request(options, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode as number, proxyRes.headers);
-        proxyRes.pipe(res, { end: true });
-      });
-
-      req.pipe(proxy, { end: true });
-
-      proxy.on('error', (error) => {
-        console.error('Proxy Error:', error);
-        res.status(500).send('Proxy Error');
-      });
-    }
-  }
+    const data = JSON.stringify(req.body)
+  },
+  async get() {},
+  async update() {},
+  async delete() {}
 };
 
 export default blogController;

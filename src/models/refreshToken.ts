@@ -1,19 +1,19 @@
 'use strict';
 
-import sequelize, { BelongsTo, Model, Sequelize } from 'sequelize';
+import sequelize, { Model, Sequelize } from 'sequelize';
 import Models from '.';
 
 interface RefreshTokenModel {
-  token: string,
-  user_id: string,
+  token: string;
+  userId: string;
 }
 
-interface RefreshToken extends Model<RefreshTokenModel>, RefreshTokenModel {};
+interface RefreshToken extends Model<RefreshTokenModel>, RefreshTokenModel {}
 
 export type RefreshTokenStatic = typeof Model & {
   new (values?: Record<string, unknown>, options?: any): RefreshToken;
   associate: (models: typeof Models) => void;
-}
+};
 
 const DataTypes = sequelize;
 const RefreshToken = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
@@ -24,7 +24,7 @@ const RefreshToken = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
         allowNull: false,
         type: dataTypes.STRING
       },
-      user_id: {
+      userId: {
         allowNull: false,
         type: dataTypes.UUID
       }

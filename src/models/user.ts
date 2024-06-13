@@ -5,25 +5,27 @@ import { Sequelize } from 'sequelize';
 import Models from '.';
 import UserRole from './userRole';
 import RefreshToken from './refreshToken';
+import UserProvider from './userProvider';
 
 interface UserModel {
-  id?: string,
-  username: string,
-  email: string,
-  password: string,
-  picture?: string,
-  role_id?: number,
-  verified?: number
+  id?: string;
+  username: string;
+  email: string;
+  password?: string;
+  picture?: string;
+  roleId?: number;
+  verified?: boolean;
 }
 
-interface User extends Model<UserModel>, UserModel {};
+interface User extends Model<UserModel>, UserModel {}
 
 export type UserStatic = typeof Model & {
   new (values?: Record<string, unknown>, options?: any): User;
   associate: (models: typeof Models) => void;
   UserRole: BelongsTo<User, UserRole>;
-  RefreshToken: HasMany<User, RefreshToken>
-}
+  RefreshToken: HasMany<User, RefreshToken>;
+  UserProvider: HasMany<User, UserProvider>;
+};
 
 const User = (sequelizeObj: Sequelize, dataTypes: typeof sequelize) => {
   const user = sequelizeObj.define<User>(
@@ -44,19 +46,21 @@ const User = (sequelizeObj: Sequelize, dataTypes: typeof sequelize) => {
         type: dataTypes.STRING
       },
       password: {
-        allowNull: false,
+        allowNull: true,
         type: dataTypes.STRING
       },
       picture: {
+        allowNull: true,
         type: dataTypes.STRING
       },
-      role_id: {
+      roleId: {
         allowNull: false,
         type: dataTypes.TINYINT,
-        defaultValue: 2
+        defaultValue: 2,
       },
       verified: {
-        type: dataTypes.BOOLEAN
+        type: dataTypes.BOOLEAN,
+        defaultValue: false
       }
     },
     {
@@ -74,12 +78,19 @@ const User = (sequelizeObj: Sequelize, dataTypes: typeof sequelize) => {
   ) as UserStatic;
 
   user.associate = (models: typeof Models) => {
-    if (models.UserRole && models.RefreshToken) {  
-      user.UserRole = user.belongsTo(models.UserRole, { foreignKey: 'role_id', targetKey: 'id' });
-      
+    if (models.UserRole && models.RefreshToken && models.UserProvider) {
+      user.UserRole = user.belongsTo(models.UserRole, {
+        foreignKey: 'role_id',
+        targetKey: 'id'
+      });
+
       user.RefreshToken = user.hasMany(models.RefreshToken, {
         foreignKey: 'user_id'
       });
+
+      user.UserProvider = user.hasMany(models.UserProvider, {
+        foreignKey: 'user_id'
+      })
     }
   };
 

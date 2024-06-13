@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Models from '../models';
+import models from '../models';
 import RefreshToken from '../models/refreshToken';
 
 type Cookies = {
@@ -14,22 +14,18 @@ type RefreshTokenJoinUser = RefreshToken & {
 
 const logoutController = async (req: Request, res: Response) => {
   const cookies: Cookies = req.cookies;
-
   if (!cookies.jwt) return res.sendStatus(204);
 
   const refreshToken = cookies.jwt;
-
-  const foundToken = (await Models.RefreshToken.findOne({
+  const foundToken = (await models.RefreshToken.findOne({
     where: { token: refreshToken },
     include: [
       {
-        model: Models.User,
+        model: models.User,
         attributes: ['username']
       }
     ]
   })) as RefreshTokenJoinUser;
-
-  console.log('logout.ts 32: ', foundToken);
 
   if (!foundToken) {
     res.clearCookie('jwt', {
@@ -42,14 +38,8 @@ const logoutController = async (req: Request, res: Response) => {
   }
 
   try {
-    await Models.RefreshToken.destroy({
+    await models.RefreshToken.destroy({
       where: { token: refreshToken }
-    });
-
-    res.clearCookie('jwt', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none'
     });
 
     return res.status(200).json({

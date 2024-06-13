@@ -6,6 +6,7 @@ import sequelizeConfig from '../config/sequelizeConfig';
 import User from './user';
 import UserRole from './userRole';
 import RefreshToken from './refreshToken';
+import UserProvider from './userProvider';
 
 interface SequelizeConfig {
   development: {
@@ -22,12 +23,13 @@ type Models = {
   User: ReturnType<typeof User>;
   UserRole: ReturnType<typeof UserRole>;
   RefreshToken: ReturnType<typeof RefreshToken>;
+  UserProvider: ReturnType<typeof UserProvider>;
   dataTypes: typeof DataTypes;
   Sequelize: Sequelize;
-}
+};
 
 let sequelizeObj: Sequelize;
-const config: SequelizeConfig['development'] = sequelizeConfig.development
+const config: SequelizeConfig['development'] = sequelizeConfig.development;
 if (config.use_env_variable) {
   sequelizeObj = new Sequelize(
     process.env[config.use_env_variable] as string,
@@ -45,6 +47,7 @@ if (config.use_env_variable) {
 sequelizeObj
   .authenticate()
   .then(() => {
+    sequelizeObj.sync();
     console.log('Connected to mysql.');
   })
   .catch((error: Error) => {
@@ -55,6 +58,7 @@ const models: Models = {
   User: User(sequelizeObj, DataTypes),
   UserRole: UserRole(sequelizeObj, DataTypes),
   RefreshToken: RefreshToken(sequelizeObj, DataTypes),
+  UserProvider: UserProvider(sequelizeObj, DataTypes),
   dataTypes: DataTypes,
   Sequelize: sequelizeObj
 };

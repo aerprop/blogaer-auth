@@ -1,27 +1,21 @@
 import { Request, Response } from 'express';
-import Models from '../models';
+import models from '../models';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { body } from 'express-validator';
-import validateRequest from '../middlewares/validateRequest';
+import { LoginReqBody } from '../utils/types';
 
-type ReqBody = {
-  username: string;
-  email: string;
-  password: string;
-};
-
-const registerController = [
-  body('username').trim().isLength({ min: 2 }).withMessage('Username must be at least 2 characters.'),
-  body('email').isEmail().withMessage('Not a valid email address.'),
-  body('password').trim().isLength({ min: 4 }).withMessage('Password must be at least 4 characters.'),
-  validateRequest,
-  async (req: Request, res: Response) => {
-  const { username, email, password }: ReqBody = req.body;
+export default async function registerController(req: Request, res: Response) {
+  const { username, email, password }: LoginReqBody = req.body;
+  if (!password) {
+    return res.status(400).json({
+      status: 'Error',
+      message: `Register failed: password is empty`
+    });
+  }
   const hashPassword = await bcrypt.hash(password, 10);
 
   try {
-    const user = await Models.User.create({
+    const user = await models.User.create({
       username,
       email,
       password: hashPassword
@@ -34,11 +28,11 @@ const registerController = [
         UserInfo: {
           id: user.id,
           username: user.username,
-          role: user.role_id === 2 ? 'Author' : 'Admin'
+          role: user.roleId === 2 ? 'Author' : 'Admin'
         }
       },
       process.env.ACCESS_TOKEN_SECRET as string,
-      { expiresIn: '10m' }
+      { expiresIn: '30m' }
     );
 
     const refreshToken = jwt.sign(
@@ -52,9 +46,9 @@ const registerController = [
       { expiresIn: '1d' }
     );
 
-    await Models.RefreshToken.create({
+    await models.RefreshToken.create({
       token: refreshToken,
-      user_id: user.id
+      userId: user.id
     });
 
     res.status(201).json({
@@ -63,7 +57,7 @@ const registerController = [
       data: {
         username: user.username,
         email: user.email,
-        role: user.role_id === 2 ? 'Author' : 'Admin',
+        role: user.roleId === 2 ? 'Author' : 'Admin',
         token: accessToken,
         refresh: refreshToken
       }
@@ -76,6 +70,4 @@ const registerController = [
       message: `Register error: ${error}.`
     });
   }
-}];
-
-export default registerController;
+}
