@@ -48,7 +48,7 @@ sequelizeObj
   .authenticate()
   .then(() => {
     sequelizeObj.sync();
-    console.log('Connected to mysql.');
+    console.log('Connected to mysql ✔✔✔');
   })
   .catch((error: Error) => {
     console.error('Unable to connect to the database', error);
