@@ -24,6 +24,6 @@ app.use(routes.refresh);
 
 app.use(verifyToken);
 app.use(routes.test);
-app.use(routes.blogPost);
+app.use(routes.post);
 
 app.listen(PORT, () => console.log(`Server running on port: ${PORT}`));

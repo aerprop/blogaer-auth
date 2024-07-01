@@ -4,7 +4,7 @@ import registerRoute from './registerRoute';
 import loginRoute from './loginRoute';
 import logoutRoute from './logoutRoute';
 import refreshTokenRoute from './refreshTokenRoute';
-import blogRoute from './blogRoute';
+import postRoute from './postRoute';
 import googleOauth2Route from './googleOauth2Route';
 import testRoute from './testRoute';
 
@@ -15,7 +15,7 @@ type Routes = {
   googleLogin: RequestHandler;
   logout: RequestHandler;
   refresh: RequestHandler;
-  blogPost: RequestHandler;
+  post: RequestHandler;
   test: RequestHandler;
 };
 
@@ -26,7 +26,7 @@ const routes: Routes = {
   googleLogin: googleOauth2Route,
   logout: logoutRoute,
   refresh: refreshTokenRoute,
-  blogPost: blogRoute,
+  post: postRoute,
   test: testRoute
 };
 
