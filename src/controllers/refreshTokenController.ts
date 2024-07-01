@@ -2,13 +2,7 @@ import { Request, Response } from 'express';
 import models from '../models';
 import jwt, { JwtPayload, Secret, VerifyErrors } from 'jsonwebtoken';
 import RefreshToken from '../models/refreshToken';
-
-type Decoded = {
-  UserInfo: {
-    id: string;
-    username: string;
-  };
-};
+import { Decoded } from '../utils/types';
 
 type Cookies = {
   jwt: string;
@@ -23,7 +17,6 @@ type RefreshTokenJoinUser = RefreshToken & {
 
 const refreshTokenController = async (req: Request, res: Response) => {
   const cookies: Cookies = req.cookies;
-  console.log('**********cookie***********', cookies.jwt);
   if (!cookies?.jwt) {
     return res.status(401).json({
       status: 'Unauthorized',
@@ -41,7 +34,6 @@ const refreshTokenController = async (req: Request, res: Response) => {
       }
     ]
   })) as RefreshTokenJoinUser;
-  console.log('***********found token***********', foundToken);
 
   // Detected refresh token reuse!
   jwt.verify(
