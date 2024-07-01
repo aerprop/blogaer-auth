@@ -1,18 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { Decoded, VerifyToken } from '../utils/types';
 
-type Decoded = {
-  UserInfo: {
-    username: string,
-    role: string
-  }
-}
-
-type VerifyToken = { username?: string; role?: string }
-
-const verifyToken = (req: Request & VerifyToken, res: Response, next: NextFunction) => {
+export default async function verifyToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const header = req.headers.authorization;
-  console.log('header', header);
+  console.log('verifyToken.ts header >>>', header);
   if (!header?.startsWith('Bearer')) {
     return res.status(401).json({
       status: 'Unauthorized',
@@ -20,10 +16,8 @@ const verifyToken = (req: Request & VerifyToken, res: Response, next: NextFuncti
     });
   }
 
-  
-
   const token = header.split(' ')[1];
-  const secret = process.env.ACCESS_TOKEN_SECRET || ''
+  const secret = process.env.ACCESS_TOKEN_SECRET || '';
   const decoded = jwt.verify(token, secret);
 
   if (!decoded) {
@@ -32,13 +26,12 @@ const verifyToken = (req: Request & VerifyToken, res: Response, next: NextFuncti
       message: 'Invalid token.'
     });
   }
-  
-  const decode = decoded as Decoded
 
+  const decode = decoded as Decoded;
+
+  req.userId = decode.UserInfo.id;
   req.username = decode.UserInfo.username;
   req.role = decode.UserInfo.role;
 
   next();
-};
-
-export default verifyToken;
+}
