@@ -95,7 +95,7 @@ export default async function loginController(req: Request, res: Response) {
           username: foundUser.username,
           email: foundUser.email,
           role: foundUser.roleId === 2 ? 'Author' : 'Admin',
-          token: accessToken,
+          access: accessToken,
           refresh: newRefreshToken
         }
       });
