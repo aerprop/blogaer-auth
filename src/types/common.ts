@@ -3,6 +3,7 @@ import { Channel, Connection } from 'amqplib';
 export type LoginReqBody = {
   username: string;
   email: string;
+  deviceId: string;
   password?: string;
   picture?: string;
   verified?: boolean;
