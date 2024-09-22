@@ -10,13 +10,14 @@ export default async function credentials(
   next: NextFunction
 ) {
   const origin = req.headers.origin as string;
-  console.log('credentials.ts > ', `origin: ${req.headers.origin}`);
   console.log(
-    'credentials.ts > ',
-    `allowedOrigins: ${allowedOrigins?.includes(origin)}`
+    '###credentials.ts | incoming request from >>>',
+    req.headers.origin,
+    `to ${req.url}`
   );
-  if (allowedOrigins?.includes(origin)) {
+
+  if (allowedOrigins?.includes(origin))
     res.header('Access-Control-Allow-Credentials', 'true');
-  }
+
   next();
 }
