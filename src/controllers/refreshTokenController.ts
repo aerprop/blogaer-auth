@@ -2,40 +2,35 @@ import { Request, Response } from 'express';
 import models from '../models';
 import jwt, { JwtPayload, Secret, VerifyErrors } from 'jsonwebtoken';
 import RefreshToken from '../models/refreshToken';
-import { Decoded } from '../utils/types';
-
-type Cookies = {
-  jwt: string;
-};
+import { Decoded } from '../types/common';
 
 type RefreshTokenJoinUser = RefreshToken & {
   User: {
     username: string;
-    role_id: string;
+    roleId: string;
   };
 };
 
 const refreshTokenController = async (req: Request, res: Response) => {
-  const cookies: Cookies = req.cookies;
-  if (!cookies?.jwt) {
+  const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
+  console.log('@@@@@@@@refreshToken called >>>', refreshToken);
+  if (!refreshToken) {
     return res.status(401).json({
       status: 'Unauthorized',
       message: 'No login cookie provided.'
     });
   }
-
-  const refreshToken = cookies.jwt;
-  const foundToken = (await models.RefreshToken.findOne({
+  const model = await models;
+  const foundToken = (await model.refreshToken.findOne({
     where: { token: refreshToken },
     include: [
       {
-        model: models.User,
-        attributes: ['username', 'role_id']
+        model: model.user,
+        attributes: ['username', 'roleId']
       }
     ]
   })) as RefreshTokenJoinUser;
-
-  // Detected refresh token reuse!
+  // Refresh token reuse detection!
   jwt.verify(
     refreshToken,
     process.env.REFRESH_TOKEN_SECRET as Secret,
@@ -48,14 +43,13 @@ const refreshTokenController = async (req: Request, res: Response) => {
         // User found - attempted refresh token reuse!
         try {
           if (decodedToken?.UserInfo.username) {
-            const hackedUser = await models.User.findOne({
+            const hackedUser = await model.user.findOne({
               where: {
                 username: decodedToken.UserInfo.username
               }
             });
-
             if (hackedUser) {
-              const deletedTokens = await models.RefreshToken.destroy({
+              const deletedTokens = await model.refreshToken.destroy({
                 where: {
                   userId: hackedUser.id
                 }
@@ -66,6 +60,10 @@ const refreshTokenController = async (req: Request, res: Response) => {
               );
             }
           }
+          return res.status(401).json({
+            status: 'Unauthorized',
+            message: 'Reuse token detected.'
+          });
         } catch (error) {
           console.log(`Deleted tokens error: ${error}`);
         }
@@ -75,12 +73,11 @@ const refreshTokenController = async (req: Request, res: Response) => {
         if (decodedToken?.UserInfo.username) {
           console.log(`${decodedToken.UserInfo.username}'s token expires!`);
           try {
-            const deletedTokens = await models.RefreshToken.destroy({
+            const deletedTokens = await model.refreshToken.destroy({
               where: {
                 token: refreshToken
               }
             });
-
             console.log(
               `Deleted ${decodedToken.UserInfo.username}'s token:`,
               deletedTokens
@@ -100,7 +97,6 @@ const refreshTokenController = async (req: Request, res: Response) => {
           }
         }
       }
-
       if (foundToken.User.username && decodedToken?.UserInfo.username) {
         if (foundToken.User.username !== decodedToken.UserInfo.username) {
           return res.status(403).json({
@@ -108,13 +104,11 @@ const refreshTokenController = async (req: Request, res: Response) => {
             message: `User ${foundToken.User.username}'s username doesn't match token data.`
           });
         }
-
         // Refresh token was still valid
-        const userRole = await models.UserRole.findOne({
-          where: { id: foundToken.User.role_id },
+        const userRole = await model.userRole.findOne({
+          where: { id: foundToken.User.roleId },
           attributes: ['role']
         });
-
         const accessToken = jwt.sign(
           {
             UserInfo: {
@@ -124,9 +118,8 @@ const refreshTokenController = async (req: Request, res: Response) => {
             }
           },
           process.env.ACCESS_TOKEN_SECRET as string,
-          { expiresIn: '30m' }
+          { expiresIn: '15m' }
         );
-
         const newRefreshToken = jwt.sign(
           {
             UserInfo: {
@@ -137,7 +130,6 @@ const refreshTokenController = async (req: Request, res: Response) => {
           process.env.REFRESH_TOKEN_SECRET as string,
           { expiresIn: '1d' }
         );
-
         try {
           await foundToken.update(
             { token: newRefreshToken },

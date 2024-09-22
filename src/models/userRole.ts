@@ -1,24 +1,22 @@
 'use strict';
-
-import sequelize, { Model, ModelStatic, Sequelize } from 'sequelize';
-import Models from '.';
+import { DataTypes, Model, Sequelize } from 'sequelize';
+import type { Models } from '.';
 
 interface UserRoleModel {
-  id: number,
-  role: string
+  id: number;
+  role: string;
 }
 
-interface UserRole extends Model<UserRoleModel>, UserRoleModel {};
+interface UserRole extends Model<UserRoleModel>, UserRoleModel {}
 
 export type UserRoleStatic = typeof Model & {
   new (values?: Record<string, unknown>, options?: any): UserRole;
-  associate: (models: typeof Models) => void;
-}
+  associate: (models: Models) => void;
+};
 
-const DataTypes = sequelize;
 const UserRole = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
   const userRole = sequelize.define<UserRole>(
-    'UserRole', 
+    'UserRole',
     {
       id: {
         allowNull: false,
@@ -28,16 +26,16 @@ const UserRole = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
       role: {
         allowNull: false,
         type: dataTypes.STRING
-      },
+      }
     },
-    { tableName: 'user_roles' }
+    { tableName: 'user_roles', underscored: true }
   ) as UserRoleStatic;
-    
-  userRole.associate = (models: typeof Models) => {
-    if ( models.User) {
-      userRole.hasMany(models.User, { foreignKey: 'role_id'});
+
+  userRole.associate = (models: Models) => {
+    if (models.user) {
+      userRole.hasMany(models.user, { foreignKey: 'role_id' });
     }
-  }
+  };
 
   return userRole;
 };

@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import models from '../models';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { LoginReqBody } from '../utils/types';
+import { LoginReqBody } from '../types/common';
 
 export default async function registerController(req: Request, res: Response) {
-  const { username, email, password }: LoginReqBody = req.body;
+  const { username, email, password, deviceId }: LoginReqBody = req.body;
   if (!password) {
     return res.status(400).json({
       status: 'Error',
@@ -15,7 +15,8 @@ export default async function registerController(req: Request, res: Response) {
   const hashPassword = await bcrypt.hash(password, 10);
 
   try {
-    const user = await models.User.create({
+    const model = await models;
+    const user = await model.user.create({
       username,
       email,
       password: hashPassword
@@ -46,13 +47,14 @@ export default async function registerController(req: Request, res: Response) {
       { expiresIn: '1d' }
     );
 
-    await models.RefreshToken.create({
+    await model.refreshToken.create({
       token: refreshToken,
-      userId: user.id
+      userId: user.id,
+      clientId: deviceId
     });
 
     res.status(201).json({
-      status: 'Created',
+      status: 'Registered',
       message: 'User successfully registered',
       data: {
         username: user.username,

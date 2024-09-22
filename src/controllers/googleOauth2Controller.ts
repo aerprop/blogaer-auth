@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import models from '../models';
-import { LoginReqBody } from '../utils/types';
+import { LoginReqBody } from '../types/common';
 import jwt from 'jsonwebtoken';
 
 export default async function googleOauth2Controller(
   req: Request,
   res: Response
 ) {
-  const { email, picture, verified }: LoginReqBody = req.body;
+  const { email, picture, verified, deviceId }: LoginReqBody = req.body;
 
   if (!email) {
     return res.status(400).json({
@@ -16,7 +16,8 @@ export default async function googleOauth2Controller(
     });
   }
   try {
-    const userExist = await models.User.findOne({
+    const model = await models;
+    const userExist = await model.user.findOne({
       where: { email }
     });
     const userData = {
@@ -28,7 +29,7 @@ export default async function googleOauth2Controller(
       refreshToken: ''
     };
     if (!userExist) {
-      const user = await models.User.create({
+      const user = await model.user.create({
         username: email,
         email,
         picture,
@@ -36,7 +37,7 @@ export default async function googleOauth2Controller(
       });
       if (!user) throw new Error(`Inserting user data failed!: ${user}`);
       if (user.id) {
-        await models.UserProvider.create({
+        await model.userProvider.create({
           provider: 'google',
           userId: user.id
         });
@@ -94,9 +95,10 @@ export default async function googleOauth2Controller(
       );
     }
 
-    await models.RefreshToken.create({
+    await model.refreshToken.create({
       token: userData.refreshToken,
-      userId: userData.id
+      userId: userData.id,
+      clientId: deviceId
     });
 
     res.status(userExist ? 200 : 201).json({

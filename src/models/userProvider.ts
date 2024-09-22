@@ -1,7 +1,6 @@
 'use strict';
-
-import sequelize, { Model, Sequelize } from 'sequelize';
-import Models from '.';
+import type { Models } from '.';
+import { DataTypes, Sequelize, Model } from 'sequelize';
 
 interface UserProviderModel {
   provider: string;
@@ -12,10 +11,9 @@ interface UserProvider extends Model<UserProviderModel>, UserProviderModel {}
 
 export type UserProviderStatic = typeof Model & {
   new (values?: Record<string, unknown>, options?: any): UserProvider;
-  associate: (models: typeof Models) => void;
+  associate: (models: Models) => void;
 };
 
-const DataTypes = sequelize;
 const UserProvider = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
   const userProvider = sequelize.define<UserProvider>(
     'UserProvider',
@@ -35,9 +33,9 @@ const UserProvider = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
     }
   ) as UserProviderStatic;
 
-  userProvider.associate = (models: typeof Models) => {
-    if (models.User) {
-      userProvider.belongsTo(models.User, {
+  userProvider.associate = (models: Models) => {
+    if (models.user) {
+      userProvider.belongsTo(models.user, {
         foreignKey: 'user_id',
         targetKey: 'id'
       });

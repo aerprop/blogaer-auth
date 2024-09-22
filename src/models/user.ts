@@ -1,11 +1,9 @@
 'use strict';
-
-import sequelize, { BelongsTo, HasMany, Model, ModelStatic } from 'sequelize';
-import { Sequelize } from 'sequelize';
-import Models from '.';
 import UserRole from './userRole';
 import RefreshToken from './refreshToken';
 import UserProvider from './userProvider';
+import type { Models } from '.';
+import { BelongsTo, DataTypes, HasMany, Model, Sequelize } from 'sequelize';
 
 interface UserModel {
   id?: string;
@@ -21,14 +19,14 @@ interface User extends Model<UserModel>, UserModel {}
 
 export type UserStatic = typeof Model & {
   new (values?: Record<string, unknown>, options?: any): User;
-  associate: (models: typeof Models) => void;
+  associate: (models: Models) => void;
   UserRole: BelongsTo<User, UserRole>;
   RefreshToken: HasMany<User, RefreshToken>;
   UserProvider: HasMany<User, UserProvider>;
 };
 
-const User = (sequelizeObj: Sequelize, dataTypes: typeof sequelize) => {
-  const user = sequelizeObj.define<User>(
+const User = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
+  const user = sequelize.define<User>(
     'User',
     {
       id: {
@@ -56,7 +54,7 @@ const User = (sequelizeObj: Sequelize, dataTypes: typeof sequelize) => {
       roleId: {
         allowNull: false,
         type: dataTypes.TINYINT,
-        defaultValue: 2,
+        defaultValue: 2
       },
       verified: {
         type: dataTypes.BOOLEAN,
@@ -77,20 +75,20 @@ const User = (sequelizeObj: Sequelize, dataTypes: typeof sequelize) => {
     }
   ) as UserStatic;
 
-  user.associate = (models: typeof Models) => {
-    if (models.UserRole && models.RefreshToken && models.UserProvider) {
-      user.UserRole = user.belongsTo(models.UserRole, {
+  user.associate = (models: Models) => {
+    if (models.userRole && models.refreshToken && models.userProvider) {
+      user.UserRole = user.belongsTo(models.userRole, {
         foreignKey: 'role_id',
         targetKey: 'id'
       });
 
-      user.RefreshToken = user.hasMany(models.RefreshToken, {
+      user.RefreshToken = user.hasMany(models.refreshToken, {
         foreignKey: 'user_id'
       });
 
-      user.UserProvider = user.hasMany(models.UserProvider, {
+      user.UserProvider = user.hasMany(models.userProvider, {
         foreignKey: 'user_id'
-      })
+      });
     }
   };
 
