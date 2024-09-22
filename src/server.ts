@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import routes from './routes/index';
 import verifyToken from './middlewares/verifyToken';
 import credentials from './middlewares/credentials';
+import verifyCookie from './middlewares/verifyCookie';
 
 const app = express();
 const PORT = process.env.PORT || 3939;
@@ -21,9 +22,11 @@ app.use(routes.login);
 app.use(routes.googleLogin);
 app.use(routes.logout);
 app.use(routes.refresh);
+app.use(routes.postPublic);
 
+app.use(verifyCookie);
 app.use(verifyToken);
-app.use(routes.test);
 app.use(routes.post);
+app.use(routes.draft);
 
 app.listen(PORT, () => console.log(`Server running on port: ${PORT}`));
