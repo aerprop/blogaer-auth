@@ -6,7 +6,8 @@ import logoutRoute from './logoutRoute';
 import refreshTokenRoute from './refreshTokenRoute';
 import postRoute from './postRoute';
 import googleOauth2Route from './googleOauth2Route';
-import testRoute from './testRoute';
+import postPublicRoute from './postPublicRoute';
+import draftRoute from './draftRoute';
 
 type Routes = {
   base: RequestHandler;
@@ -16,7 +17,8 @@ type Routes = {
   logout: RequestHandler;
   refresh: RequestHandler;
   post: RequestHandler;
-  test: RequestHandler;
+  postPublic: RequestHandler;
+  draft: RequestHandler;
 };
 
 const routes: Routes = {
@@ -27,7 +29,8 @@ const routes: Routes = {
   logout: logoutRoute,
   refresh: refreshTokenRoute,
   post: postRoute,
-  test: testRoute
+  postPublic: postPublicRoute,
+  draft: draftRoute,
 };
 
 export default routes;
