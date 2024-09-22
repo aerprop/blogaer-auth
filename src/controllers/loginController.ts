@@ -2,35 +2,35 @@ import models from '../models';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { Op } from 'sequelize';
 
 export default async function loginController(req: Request, res: Response) {
-  const cookies = req.cookies;
+  const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
+  const { emailOrUsername, password, clientId } = req.body;
 
-  const { email, password } = req.body;
-
-  const foundUser = await models.User.findOne({
-    where: { email },
-    attributes: ['id', 'username', 'email', 'password', 'role_id']
+  const model = await models;
+  const foundUser = await model.user.findOne({
+    where: {
+      [Op.or]: {
+        email: emailOrUsername,
+        username: emailOrUsername
+      }
+    },
+    attributes: ['id', 'username', 'email', 'password', 'roleId', 'picture']
   });
 
-  if (!foundUser) {
+  if (!foundUser || !foundUser.password) {
     return res.status(404).json({
       status: 'Not found',
-      messages: `User with email of '${email}' not found.`
-    });
-  }
-  if (!foundUser.password) {
-    return res.status(404).json({
-      status: 'Not found',
-      messages: `User with email of '${email}' not found.`
+      message: `Email or username of '${emailOrUsername}' do not exist.`
     });
   }
 
-  const correctPassword = bcrypt.compare(password, foundUser.password);
+  const correctPassword = await bcrypt.compare(password, foundUser.password);
   if (!correctPassword) {
     return res.status(401).json({
       status: 'Unauthorized',
-      messages: 'Password miss match!'
+      message: 'Password do not match!'
     });
   }
 
@@ -43,7 +43,7 @@ export default async function loginController(req: Request, res: Response) {
       }
     },
     process.env.ACCESS_TOKEN_SECRET as string,
-    { expiresIn: '30m' }
+    { expiresIn: '15m' }
   );
 
   const newRefreshToken = jwt.sign(
@@ -57,60 +57,39 @@ export default async function loginController(req: Request, res: Response) {
     { expiresIn: '1d' }
   );
 
-  let isReuseDetected = false;
-
-  if (cookies?.jwt) {
-    const refreshToken = cookies.jwt;
-    const foundToken = await models.RefreshToken.findOne({
-      where: { token: refreshToken }
-    });
-    // Detected refresh token reuse!
-    if (foundToken) {
-      console.log(
-        'loginController > ',
-        'Attempted refresh token reuse at login'
-      );
-      isReuseDetected = true;
-
-      res.clearCookie('jwt', {
-        httpOnly: true,
-        sameSite: false,
-        secure: process.env.NODE_ENV !== 'development'
-      });
-    }
-  }
-
   try {
-    if (!isReuseDetected && foundUser.id) {
-      await models.RefreshToken.create({
+    if (foundUser.id) {
+      await model.refreshToken.create({
         token: newRefreshToken,
-        userId: foundUser.id
+        userId: foundUser.id,
+        clientId
       });
 
       // Send the response
       res.status(200).json({
-        status: 'OK',
+        status: 'Success',
         message: `User ${foundUser.username} successfully logged in.`,
         data: {
           username: foundUser.username,
           email: foundUser.email,
           role: foundUser.roleId === 2 ? 'Author' : 'Admin',
+          img: foundUser.picture,
           access: accessToken,
           refresh: newRefreshToken
         }
       });
     } else {
-      const deletedToken = await models.RefreshToken.destroy({
-        where: { token: cookies.jwt }
+      const deletedToken = await model.refreshToken.destroy({
+        where: { token: refreshToken }
       });
       console.log(
-        'loginController > ',
-        `Deleted refresh token after reuse attempted: ${deletedToken}`
+        'Deleted refresh token after reuse detected >>>',
+        deletedToken
       );
 
       return res.status(403).json({
         status: 'Forbidden',
-        message: `Reuse refresh token detected!`
+        message: 'Reuse refresh token detected!'
       });
     }
   } catch (error) {
