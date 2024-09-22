@@ -2,10 +2,6 @@ import { Request, Response } from 'express';
 import models from '../models';
 import RefreshToken from '../models/refreshToken';
 
-type Cookies = {
-  jwt: string;
-};
-
 type RefreshTokenJoinUser = RefreshToken & {
   User: {
     username: string;
@@ -13,35 +9,26 @@ type RefreshTokenJoinUser = RefreshToken & {
 };
 
 const logoutController = async (req: Request, res: Response) => {
-  const cookies: Cookies = req.cookies;
-  if (!cookies.jwt) return res.sendStatus(204);
+  const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
+  if (!refreshToken) return res.sendStatus(204);
 
-  const refreshToken = cookies.jwt;
-  const foundToken = (await models.RefreshToken.findOne({
+  const model = await models;
+  const foundToken = (await model.refreshToken.findOne({
     where: { token: refreshToken },
     include: [
       {
-        model: models.User,
+        model: model.user,
         attributes: ['username']
       }
     ]
   })) as RefreshTokenJoinUser;
 
-  if (!foundToken) {
-    res.clearCookie('jwt', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none'
-    });
-
-    return res.sendStatus(204);
-  }
-
   try {
-    await models.RefreshToken.destroy({
+    await model.refreshToken.destroy({
       where: { token: refreshToken }
     });
 
+    console.log('User has logged out.');
     return res.status(200).json({
       status: 'OK',
       message: `${foundToken.User.username} has successfully logged out.`
@@ -51,10 +38,9 @@ const logoutController = async (req: Request, res: Response) => {
 
     return res.status(500).json({
       status: 'Internal server error',
-      message: `Logout error: ${error}.`,
-      data: {
-        user: foundToken.User.username
-      }
+      message: `Logout error: ${
+        error instanceof Error ? error.message : 'Unknown error occurred!'
+      }.`
     });
   }
 };
