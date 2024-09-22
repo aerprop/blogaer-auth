@@ -1,82 +1,33 @@
 import { Request, Response } from 'express';
-import handleMessage from '../utils/handleMessage';
+import handleGetPostsByPage from '../messaging/handleGetPostsByPage';
+import handleAddPost from '../messaging/handleAddPost';
+import handleGetPostById from '../messaging/handleGetPostById';
+import handleGetPostsByUserId from '../messaging/handleGetPostsByUserId';
+import handlePatchPost from '../messaging/handlePatchPost';
+import { PostPayload } from '../types/dto/PostPayload';
+import handleDeletePost from '../messaging/handleDeletePost';
 
 const blogController = {
-  async addPost(req: Request, res: Response) {
-    const { rabbitConn, rabbitChan } = req;
-    const { content, tags } = req.body;
+  addPost(req: Request, res: Response) {
+    const { rabbitChan } = req;
+    const { id, title, content, tags }: PostPayload = req.body;
     const userId = req.userId;
-    const data = Buffer.from(JSON.stringify({ userId, content, tags }));
-
-    await handleMessage(
-      res,
-      rabbitConn,
-      rabbitChan,
-      'postExchange',
-      'postQueue',
-      'add_post_request',
-      'add_post_response',
-      data
+    const message = Buffer.from(
+      JSON.stringify({ id, userId, title: title.trim(), content, tags })
     );
+    handleAddPost(res, rabbitChan, message);
   },
-  async getPostById(req: Request, res: Response) {
-    const { rabbitConn, rabbitChan } = req;
-    const { postId } = req.params;
-    const data = Buffer.from(postId);
-
-    await handleMessage(
-      res,
-      rabbitConn,
-      rabbitChan,
-      'postExchange',
-      'postQueue',
-      'get_post_by_id_request',
-      'get_post_by_id_response',
-      data
+  patchPost(req: Request, res: Response) {
+    const { rabbitChan } = req;
+    const slugs = req.params.slug.split('-');
+    const id = slugs[slugs.length - 1];
+    const { title, content, tags }: PostPayload = req.body;
+    const message = Buffer.from(
+      JSON.stringify({ id, title: title.trim(), content, tags })
     );
+    handlePatchPost(res, rabbitChan, message);
   },
-  async getPostsByQuery(req: Request, res: Response) {
-    const { rabbitConn, rabbitChan } = req;
-    const { query, sort, categories, tags, pageNum } = req.body;
-    const pageSize = 5;
-    const data = Buffer.from(
-      JSON.stringify({
-        explore: { query, sort, categories, tags },
-        page: { pageNum, pageSize }
-      })
-    );
-
-    await handleMessage(
-      res,
-      rabbitConn,
-      rabbitChan,
-      'postExchange',
-      'postQueue',
-      'get_posts_by_page_request',
-      'get_posts_by_page_response',
-      data
-    );
-  },
-  async explorePosts(req: Request, res: Response) {
-    const { rabbitConn, rabbitChan } = req;
-    const { query, filter, sort, page } = req.query;
-    const limit = 20;
-    const data = Buffer.from(
-      JSON.stringify({ query, filter, sort, page, limit })
-    );
-
-    await handleMessage(
-      res,
-      rabbitConn,
-      rabbitChan,
-      'postExchange',
-      'postQueue',
-      'explore_post_request',
-      'explore_post_response',
-      data
-    );
-  },
-  async updatePost(req: Request, res: Response) {
+  updatePost(req: Request, res: Response) {
     const { content, tags } = req.body;
     if (!content || !tags) {
       res.status(400).json({
@@ -90,53 +41,49 @@ const blogController = {
         }`
       });
     }
-    const { rabbitConn, rabbitChan } = req;
+    const { rabbitChan } = req;
     const { postId } = req.params;
-    const data = Buffer.from(JSON.stringify({ postId, content, tags }));
+    const message = Buffer.from(JSON.stringify({ postId, content, tags }));
+  },
+  async getPostsByPage(req: Request, res: Response) {
+    const { rabbitChan } = req;
+    const { categories, pageNum, pageSize = 5 } = req.query;
+    const message = Buffer.from(JSON.stringify({ pageNum, pageSize }));
 
-    await handleMessage(
-      res,
-      rabbitConn,
-      rabbitChan,
-      'postExchange',
-      'postQueue',
-      'update_post_request',
-      'update_post_response',
-      data
+    await handleGetPostsByPage(res, rabbitChan, message);
+  },
+  async getPostById(req: Request, res: Response) {
+    const { rabbitChan } = req;
+    const slugs = req.params.slug.split('-');
+    const postId = slugs[slugs.length - 1];
+    const message = Buffer.from(JSON.stringify({ postId }));
+
+    await handleGetPostById(res, rabbitChan, message);
+  },
+  async getPostsByUserId(req: Request, res: Response) {
+    const { rabbitChan } = req;
+    const { userId } = req;
+    const { pageNum, pageSize = 5 } = req.query;
+    const message = Buffer.from(JSON.stringify({ userId, pageNum, pageSize }));
+
+    await handleGetPostsByUserId(res, rabbitChan, message);
+  },
+  async explorePosts(req: Request, res: Response) {
+    const { rabbitChan } = req;
+    const { query, filter, sort, page } = req.query;
+    const limit = 20;
+    const message = Buffer.from(
+      JSON.stringify({ query, filter, sort, page, limit })
     );
   },
-  async patchPost(req: Request, res: Response) {
-    const { rabbitConn, rabbitChan } = req;
-    const { postId } = req.params;
-    const { content, tags } = req.body;
-    const data = Buffer.from(JSON.stringify({ postId, content, tags }));
+  deletePost(req: Request, res: Response) {
+    const { rabbitChan } = req;
+    const slugs = req.params.slug.split('-');
+    const postId = slugs[slugs.length - 1];
+    const message = Buffer.from(JSON.stringify({ postId }));
+    console.log('### Delete post >>>', postId);
 
-    await handleMessage(
-      res,
-      rabbitConn,
-      rabbitChan,
-      'postExchange',
-      'postQueue',
-      'patch_post_request',
-      'patch_post_response',
-      data
-    );
-  },
-  async deletePost(req: Request, res: Response) {
-    const { rabbitConn, rabbitChan } = req;
-    const { postId } = req.params;
-    const data = Buffer.from(postId);
-
-    await handleMessage(
-      res,
-      rabbitConn,
-      rabbitChan,
-      'postExchange',
-      'postQueue',
-      'delete_post_request',
-      'delete_post_response',
-      data
-    );
+    handleDeletePost(res, rabbitChan, message);
   }
 };
 
