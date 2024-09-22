@@ -2,7 +2,7 @@
 
 /** @type {import('sequelize-cli').Migration} */
 export default {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface, _) {
     return queryInterface.bulkInsert('user_roles', [
       {
         id: 1,
@@ -15,7 +15,7 @@ export default {
     ]);
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _) {
     return queryInterface.bulkDelete('user_roles', null);
   }
 };
