@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import models from '../models';
+import models from '../../models';
 import jwt, { JwtPayload, Secret, VerifyErrors } from 'jsonwebtoken';
-import RefreshToken from '../models/refreshToken';
-import { Decoded } from '../types/common';
+import RefreshToken from '../../models/refreshToken';
+import { Decoded } from '../../types/common';
 
 type RefreshTokenJoinUser = RefreshToken & {
   User: {
@@ -11,9 +11,11 @@ type RefreshTokenJoinUser = RefreshToken & {
   };
 };
 
-const refreshTokenController = async (req: Request, res: Response) => {
+export default async function refreshTokenController(
+  req: Request,
+  res: Response
+) {
   const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
-  console.log('@@@@@@@@refreshToken called >>>', refreshToken);
   if (!refreshToken) {
     return res.status(401).json({
       status: 'Unauthorized',
@@ -70,6 +72,7 @@ const refreshTokenController = async (req: Request, res: Response) => {
         return res.sendStatus(403);
       }
       if (err) {
+        // Session expired
         if (decodedToken?.UserInfo.username) {
           console.log(`${decodedToken.UserInfo.username}'s token expires!`);
           try {
@@ -131,7 +134,7 @@ const refreshTokenController = async (req: Request, res: Response) => {
           { expiresIn: '1d' }
         );
         try {
-          await foundToken.update(
+          await model.refreshToken.update(
             { token: newRefreshToken },
             { where: { token: refreshToken } }
           );
@@ -156,6 +159,4 @@ const refreshTokenController = async (req: Request, res: Response) => {
       }
     }
   );
-};
-
-export default refreshTokenController;
+}

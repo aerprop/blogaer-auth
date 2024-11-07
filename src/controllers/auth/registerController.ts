@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import models from '../models';
+import models from '../../models';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { LoginReqBody } from '../types/common';
+import { LoginReqBody } from '../../types/common';
 
 export default async function registerController(req: Request, res: Response) {
   const { username, email, password, deviceId }: LoginReqBody = req.body;

@@ -1,4 +1,4 @@
-import models from '../models';
+import models from '../../models';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
@@ -13,10 +13,21 @@ export default async function loginController(req: Request, res: Response) {
     where: {
       [Op.or]: {
         email: emailOrUsername,
-        username: emailOrUsername
+        username: {
+          [Op.like]: emailOrUsername
+        }
       }
     },
-    attributes: ['id', 'username', 'email', 'password', 'roleId', 'picture']
+    attributes: [
+      'id',
+      'username',
+      'name',
+      'email',
+      'description',
+      'password',
+      'roleId',
+      'picture'
+    ]
   });
 
   if (!foundUser || !foundUser.password) {
@@ -65,13 +76,14 @@ export default async function loginController(req: Request, res: Response) {
         clientId
       });
 
-      // Send the response
       res.status(200).json({
         status: 'Success',
         message: `User ${foundUser.username} successfully logged in.`,
         data: {
           username: foundUser.username,
+          name: foundUser.name,
           email: foundUser.email,
+          desc: foundUser.description,
           role: foundUser.roleId === 2 ? 'Author' : 'Admin',
           img: foundUser.picture,
           access: accessToken,
