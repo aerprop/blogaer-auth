@@ -13,7 +13,7 @@ export default async function handleGetDraftById(
       exclusive: true,
       durable: false
     });
-    channel.publish('postRpcExchange', 'draft.get.by.id.key', message, {
+    channel.publish('draftRpcExchange', 'draft.get.by.id.key', message, {
       persistent: false,
       replyTo: queue
     });

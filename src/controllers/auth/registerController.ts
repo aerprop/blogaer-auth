@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import models from '../../models';
+import models from '../../models/MainModel';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { LoginReqBody } from '../../types/common';

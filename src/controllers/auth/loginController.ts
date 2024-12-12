@@ -1,8 +1,9 @@
-import models from '../../models';
+import models from '../../models/MainModel';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
+import jwtService from '../../services/user/jwtService';
 
 export default async function loginController(req: Request, res: Response) {
   const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
@@ -45,27 +46,10 @@ export default async function loginController(req: Request, res: Response) {
     });
   }
 
-  const accessToken = jwt.sign(
-    {
-      UserInfo: {
-        id: foundUser.id,
-        username: foundUser.username,
-        role: foundUser.roleId === 2 ? 'Author' : 'Admin'
-      }
-    },
-    process.env.ACCESS_TOKEN_SECRET as string,
-    { expiresIn: '15m' }
-  );
-
-  const newRefreshToken = jwt.sign(
-    {
-      UserInfo: {
-        id: foundUser.id,
-        username: foundUser.username
-      }
-    },
-    process.env.REFRESH_TOKEN_SECRET as string,
-    { expiresIn: '1d' }
+  const [accessToken, newRefreshToken] = await jwtService.generateJwtService(
+    foundUser.username,
+    foundUser.roleId,
+    foundUser.id
   );
 
   try {
@@ -76,15 +60,14 @@ export default async function loginController(req: Request, res: Response) {
         clientId
       });
 
-      res.status(200).json({
+      return res.status(200).json({
         status: 'Success',
-        message: `User ${foundUser.username} successfully logged in.`,
         data: {
           username: foundUser.username,
           name: foundUser.name,
           email: foundUser.email,
           desc: foundUser.description,
-          role: foundUser.roleId === 2 ? 'Author' : 'Admin',
+          role: foundUser.roleId === 1 ? 'Admin' : 'Author',
           img: foundUser.picture,
           access: accessToken,
           refresh: newRefreshToken

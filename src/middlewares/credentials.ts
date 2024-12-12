@@ -11,8 +11,7 @@ export default async function credentials(
 ) {
   const origin = req.headers.origin as string;
   console.log(
-    '###credentials.ts | incoming request from >>>',
-    req.headers.origin,
+    `incoming request from >>> ${req.headers.origin}`,
     `to ${req.url}`
   );
 

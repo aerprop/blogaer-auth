@@ -1,8 +1,8 @@
-import { Router } from 'express';
 import postController from '../controllers/postController';
 import postRpcChan from '../middlewares/postRpcChan';
+import { routerInit } from './router';
 
-export default Router()
+const postPublicRoute = routerInit
   .use(postRpcChan)
   .get(`${process.env.BASE_ROUTE}/post/public`, postController.getPostsByPage)
   .get(
@@ -13,3 +13,5 @@ export default Router()
     `${process.env.BASE_ROUTE}/post/public/explore`,
     postController.explorePosts
   );
+
+export default postPublicRoute;

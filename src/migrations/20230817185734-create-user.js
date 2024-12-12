@@ -7,6 +7,7 @@ export default {
       id: {
         allowNull: false,
         primaryKey: true,
+        unique: true,
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4
       },
@@ -23,18 +24,27 @@ export default {
       password: {
         type: Sequelize.STRING
       },
+      name: {
+        type: Sequelize.STRING
+      },
+      description: {
+        type: Sequelize.STRING
+      },
       picture: {
+        type: Sequelize.STRING
+      },
+      banner: {
         type: Sequelize.STRING
       },
       roleId: {
         allowNull: false,
         type: Sequelize.TINYINT,
         defaultValue: 2,
+        field: 'role_id',
         references: {
           model: 'user_roles',
           key: 'id'
-        },
-        field: 'role_id'
+        }
       },
       verified: {
         type: Sequelize.BOOLEAN
@@ -57,7 +67,7 @@ export default {
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _) {
     await queryInterface.dropTable('Users');
   }
 };

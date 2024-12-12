@@ -42,8 +42,8 @@ const blogController = {
       });
     }
     const { rabbitChan } = req;
-    const { postId } = req.params;
-    const message = Buffer.from(JSON.stringify({ postId, content, tags }));
+    const { id } = req.params;
+    const message = Buffer.from(JSON.stringify({ id, content, tags }));
   },
   async getPostsByPage(req: Request, res: Response) {
     const { rabbitChan } = req;
@@ -55,8 +55,8 @@ const blogController = {
   async getPostById(req: Request, res: Response) {
     const { rabbitChan } = req;
     const slugs = req.params.slug.split('-');
-    const postId = slugs[slugs.length - 1];
-    const message = Buffer.from(JSON.stringify({ postId }));
+    const id = slugs[slugs.length - 1];
+    const message = Buffer.from(JSON.stringify({ id }));
 
     await handleGetPostById(res, rabbitChan, message);
   },
@@ -79,9 +79,9 @@ const blogController = {
   deletePost(req: Request, res: Response) {
     const { rabbitChan } = req;
     const slugs = req.params.slug.split('-');
-    const postId = slugs[slugs.length - 1];
-    const message = Buffer.from(JSON.stringify({ postId }));
-    console.log('### Delete post >>>', postId);
+    const id = slugs[slugs.length - 1];
+    const message = Buffer.from(JSON.stringify({ id }));
+    console.log('### Delete post >>>', id);
 
     handleDeletePost(res, rabbitChan, message);
   }

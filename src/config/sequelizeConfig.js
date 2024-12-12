@@ -7,20 +7,21 @@ module.exports = {
     password: `${process.env.DEV_DB_PASSWORD}`,
     database: `${process.env.DEV_DB_NAME}`,
     host: `${process.env.DEV_HOST}`,
-    dialect: 'mysql'
+    storage: '/home/anekra/Dev/Docker/docker-compose-config/sqlite/db/blogaer_auth.db',
+    dialect: 'sqlite'
   },
   test: {
     username: 'root',
     password: null,
     database: 'database_test',
     host: '127.0.0.1',
-    dialect: 'mysql'
+    dialect: 'sqlite'
   },
   production: {
     username: 'root',
     password: null,
     database: 'database_production',
     host: '127.0.0.1',
-    dialect: 'mysql'
+    dialect: 'sqlite'
   }
 };

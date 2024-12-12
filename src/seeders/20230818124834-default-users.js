@@ -1,7 +1,7 @@
 'use strict';
 import bcrypt from 'bcrypt';
 import { config } from 'dotenv';
-import models from '../models';
+import models from '../models/MainModel';
 
 config();
 
@@ -13,13 +13,17 @@ export default {
         id: 'cca29307-a21d-4b45-8932-e60ab4ab005e',
         username: 'SuperAdmin',
         email: 'superadmin@mail.com',
-        role_id: 1
+        name: 'Super Admin',
+        description: 'The administrator',
+        roleId: 1
       },
       {
         id: '239da839-477c-4502-b34e-e0979dd337fd',
         username: 'FirstUser',
         email: 'firstuser@mail.com',
-        role_id: 2
+        name: 'First User',
+        description: 'The test user',
+        roleId: 2
       }
     ];
 

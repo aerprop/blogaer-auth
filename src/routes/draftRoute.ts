@@ -1,16 +1,16 @@
-import { Router } from 'express';
 import verifyAuthor from '../middlewares/verifyAuthor';
 import draftRpcChan from '../middlewares/draftRpcChan';
 import draftTopicChan from '../middlewares/draftTopicChan';
 import draftController from '../controllers/draftController';
+import { router } from './router';
 
-export default Router()
+const draftRoute = router()
   .use(verifyAuthor)
   .get(`${process.env.BASE_ROUTE}/draft/user`, [
     draftRpcChan,
     draftController.getDraftsByUserId
   ])
-  .get(`${process.env.BASE_ROUTE}/draft/:slug`, [
+  .get(`${process.env.BASE_ROUTE}/draft/:id`, [
     draftRpcChan,
     draftController.getDraftById
   ])
@@ -18,15 +18,17 @@ export default Router()
     draftTopicChan,
     draftController.addDraft
   ])
-  .patch(`${process.env.BASE_ROUTE}/draft/:slug`, [
+  .patch(`${process.env.BASE_ROUTE}/draft/:id`, [
     draftTopicChan,
     draftController.patchDraft
   ])
-  .put(`${process.env.BASE_ROUTE}/draft/:slug`, [
+  .put(`${process.env.BASE_ROUTE}/draft/:id`, [
     draftTopicChan,
     draftController.updateDraft
   ])
-  .delete(`${process.env.BASE_ROUTE}/draft/:slug`, [
+  .delete(`${process.env.BASE_ROUTE}/draft/:id`, [
     draftTopicChan,
     draftController.deleteDraft
   ]);
+
+export default draftRoute;

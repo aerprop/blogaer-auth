@@ -6,11 +6,11 @@ export default async function verifyAuthor(
   next: NextFunction
 ) {
   const role = req.role;
-
   if (role.toLowerCase() !== 'author') {
     res
       .status(403)
       .json({ status: 'Forbidden', message: 'User is not an author!' });
   }
+
   next();
 }

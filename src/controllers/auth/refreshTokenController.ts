@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import models from '../../models';
+import models from '../../models/MainModel';
 import jwt, { JwtPayload, Secret, VerifyErrors } from 'jsonwebtoken';
-import RefreshToken from '../../models/refreshToken';
+import RefreshToken from '../../models/RefreshToken';
 import { Decoded } from '../../types/common';
 
 type RefreshTokenJoinUser = RefreshToken & {

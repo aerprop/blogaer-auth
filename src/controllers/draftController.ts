@@ -4,21 +4,21 @@ import handleAddDraft from '../messaging/draft/handleAddDraft';
 import handlePatchDraft from '../messaging/draft/handlePatchDraft';
 import handleGetDraftById from '../messaging/draft/handleGetDraftById';
 import handleGetDraftsByUserId from '../messaging/draft/handleGetDraftByUserId';
+import handleDeleteDraft from '../messaging/draft/handleDeleteDraft';
 
 const draftController = {
   addDraft(req: Request, res: Response) {
     const { rabbitChan } = req;
-    const { id, title, content, }: PostPayload = req.body;
+    const { id, title, content }: PostPayload = req.body;
     const userId = req.userId;
     const message = Buffer.from(
-      JSON.stringify({ id, userId, title: title.trim(), content, })
+      JSON.stringify({ id, userId, title: title.trim(), content })
     );
     handleAddDraft(res, rabbitChan, message);
   },
   patchDraft(req: Request, res: Response) {
     const { rabbitChan } = req;
-    const slugs = req.params.slug.split('-');
-    const id = slugs[slugs.length - 1];
+    const { id } = req.params;
     const { title, content, tags }: PostPayload = req.body;
     const message = Buffer.from(
       JSON.stringify({ id, title: title.trim(), content, tags })
@@ -40,14 +40,13 @@ const draftController = {
       });
     }
     const { rabbitChan } = req;
-    const { postId } = req.params;
-    const message = Buffer.from(JSON.stringify({ postId, content, tags }));
+    const { id } = req.params;
+    const message = Buffer.from(JSON.stringify({ id, content, tags }));
   },
   async getDraftById(req: Request, res: Response) {
     const { rabbitChan } = req;
-    const slugs = req.params.slug.split('-');
-    const postId = slugs[slugs.length - 1];
-    const message = Buffer.from(JSON.stringify({ postId }));
+    const { id } = req.params;
+    const message = Buffer.from(JSON.stringify({ id }));
 
     await handleGetDraftById(res, rabbitChan, message);
   },
@@ -69,9 +68,10 @@ const draftController = {
   },
   deleteDraft(req: Request, res: Response) {
     const { rabbitChan } = req;
-    const slugs = req.params.slug.split('-');
-    const postId = slugs[slugs.length - 1];
-    const message = Buffer.from(JSON.stringify({ postId }));
+    const { id } = req.params;
+    const message = Buffer.from(JSON.stringify({ id }));
+
+    handleDeleteDraft(res, rabbitChan, message);
   }
 };
 

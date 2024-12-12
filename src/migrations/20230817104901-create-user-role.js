@@ -7,6 +7,8 @@ export default {
       id: {
         allowNull: false,
         primaryKey: true,
+        unique: true,
+        autoIncrement: true,
         type: Sequelize.TINYINT
       },
       role: {
@@ -16,7 +18,7 @@ export default {
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _) {
     await queryInterface.dropTable('user_roles');
   }
 };

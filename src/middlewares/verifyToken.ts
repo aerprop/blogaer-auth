@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { Decoded } from '../types/common';
 
-export default async function verifyToken(
+export default function verifyToken(
   req: Request,
   res: Response,
   next: NextFunction
@@ -14,9 +14,11 @@ export default async function verifyToken(
       message: "Token Doesn't start with Bearer."
     });
   }
+
   const token = header.split(' ')[1];
-  if (!token) return;
-  const secret = process.env.ACCESS_TOKEN_SECRET || '';
+  if (token === 'undefined') return res.sendStatus(498);
+
+  const secret = `${process.env.ACCESS_TOKEN_SECRET}`;
   const decoded = jwt.verify(token, secret);
   if (!decoded) {
     return res.status(403).json({

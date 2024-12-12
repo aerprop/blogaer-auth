@@ -7,7 +7,7 @@ export default function handleAddDraft(
   message: Buffer
 ) {
   const isPublished = channel.publish(
-    'postTopicExchange',
+    'draftTopicExchange',
     'draft.add.key',
     message,
     {

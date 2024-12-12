@@ -1,10 +1,10 @@
-import { Router } from 'express';
 import verifyAuthor from '../middlewares/verifyAuthor';
 import postController from '../controllers/postController';
 import postTopicChan from '../middlewares/postTopicChan';
 import postRpcChan from '../middlewares/postRpcChan';
+import { router } from './router';
 
-export default Router()
+const postRoute = router()
   .use(verifyAuthor)
   .get(`${process.env.BASE_ROUTE}/post/user`, [
     postRpcChan,
@@ -26,3 +26,5 @@ export default Router()
     postTopicChan,
     postController.deletePost
   ]);
+
+export default postRoute;

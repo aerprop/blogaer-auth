@@ -7,7 +7,7 @@ export default function handlePatchDraft(
   message: Buffer
 ) {
   const isPublished = channel.publish(
-    'postTopicExchange',
+    'draftTopicExchange',
     'draft.patch.key',
     message,
     {

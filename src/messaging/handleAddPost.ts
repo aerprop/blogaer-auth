@@ -15,7 +15,7 @@ export default function handleAddPost(
     }
   );
   if (isPublished) {
-    res.status(200).json({ status: 'Success', message: 'Adding post' });
+    res.sendStatus(204);
   } else {
     res.status(500).json({
       status: 'Internal Server Error',

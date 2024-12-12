@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import models from '../../models';
-import RefreshToken from '../../models/refreshToken';
+import models from '../../models/MainModel';
+import RefreshToken from '../../models/RefreshToken';
 
 type RefreshTokenJoinUser = RefreshToken & {
   User: {
@@ -28,11 +28,7 @@ const logoutController = async (req: Request, res: Response) => {
       where: { token: refreshToken }
     });
 
-    console.log(`${foundToken.User.username} has logged out.`);
-    return res.status(200).json({
-      status: 'OK',
-      message: `${foundToken.User.username} has successfully logged out.`
-    });
+    return res.sendStatus(204);
   } catch (error) {
     console.error('Logout', error);
 

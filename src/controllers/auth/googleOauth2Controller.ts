@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
-import models from '../../models';
+import models from '../../models/MainModel';
 import { generateRandomChars } from '../../utils/helper';
+import jwtService from '../../services/user/jwtService';
 
 export default async function googleOauth2Controller(
   req: Request,
@@ -47,9 +48,9 @@ export default async function googleOauth2Controller(
     console.log('google oauth user info >>>', userInfo);
 
     const model = await models;
-    const [user, created] = await model.user.findOrCreate({
+    const [user, isCreated] = await model.user.findOrCreate({
       where: {
-        email: userInpmnfo.email
+        email: userInfo.email
       },
       defaults: {
         username: userInfo.given_name + generateRandomChars(4),
@@ -69,7 +70,7 @@ export default async function googleOauth2Controller(
       ]
     });
 
-    if (created && user.id) {
+    if (isCreated && user.id) {
       await model.userOauth.create({
         userId: user.id,
         oauthProvider: 'Google',
@@ -77,27 +78,10 @@ export default async function googleOauth2Controller(
       });
     }
 
-    const accessToken = jwt.sign(
-      {
-        UserInfo: {
-          id: user.id,
-          username: user.username,
-          role: user.roleId === 2 ? 'Author' : 'Admin'
-        }
-      },
-      `${process.env.ACCESS_TOKEN_SECRET}`,
-      { expiresIn: '15m' }
-    );
-
-    const newRefreshToken = jwt.sign(
-      {
-        UserInfo: {
-          id: user.id,
-          username: user.username
-        }
-      },
-      `${process.env.REFRESH_TOKEN_SECRET}`,
-      { expiresIn: '1d' }
+    const [accessToken, newRefreshToken] = await jwtService.generateJwtService(
+      user.username,
+      user.roleId,
+      user.id
     );
 
     await model.refreshToken.create({
@@ -109,7 +93,6 @@ export default async function googleOauth2Controller(
 
     res.status(200).json({
       status: 'Success',
-      message: `User ${user.username} successfully logged in.`,
       data: {
         username: user.username,
         name: user.name,
