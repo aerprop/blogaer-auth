@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import models from '../../../models/MainModel';
-import inMemoryModel from '../../../models/in-memory/InMemoryModel';
+import mainModel from '../../../models/MainModel';
 import {
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
@@ -14,228 +13,346 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse
 } from '@simplewebauthn/server';
-import { TwoFAMethod } from '../../../utils/enums';
 import Bowser from 'bowser';
 import UserPasskey from '../../../models/UserPasskey';
 import User from '../../../models/User';
 import jwtService from '../../../services/user/jwtService';
+import { col, fn, Op, where } from 'sequelize';
 
 const rpName = 'Blogaer-auth';
 const rpID = 'localhost';
 const origin = `http://${rpID}:3000`;
-const inMemModel = inMemoryModel();
 const webAuthnController = {
   async generateRegisterOptions(req: Request, res: Response) {
-    const { userId, username } = req;
-    const model = await models;
-    const user = await model.user.findByPk(userId, {
-      attributes: ['name']
-    });
-
-    const userPasskeys =
-      (await model.userPasskey.findAll({
-        where: {
-          userId
-        }
-      })) || [];
-
-    const options: PublicKeyCredentialCreationOptionsJSON =
-      await generateRegistrationOptions({
-        rpName,
-        rpID,
-        userName: username,
-        userDisplayName: user?.name,
-        attestationType: 'none',
-        excludeCredentials: userPasskeys.map((passkey) => ({
-          id: passkey.id,
-          transports: passkey.transports
-        })),
-        authenticatorSelection: {
-          residentKey: 'preferred',
-          userVerification: 'required',
-          authenticatorAttachment: 'platform'
-        }
-      });
-
-    await inMemModel.webAuthnRegisterOption.create({
-      userId,
-      options
-    });
-
-    return res.status(200).json({
-      status: 'Success',
-      data: { options }
-    });
-  },
-  async verifyRegisterOptions(req: Request, res: Response) {
-    const { options }: { options: RegistrationResponseJSON } = req.body;
-    const { userId } = req;
-
-    const inMemOption = await inMemModel.webAuthnRegisterOption.findOne({
-      where: { userId }
-    });
-
-    const currentOptions = inMemOption?.options;
-    if (!currentOptions?.challenge) {
-      inMemModel.sequelize.close();
-
-      return res.status(404).json({
-        status: 'Not found',
-        error: 'Webauthn registration option not found!'
+    const inMemModel = req.inMemModel;
+    if (!inMemModel) {
+      console.log('Failed to initialize in-memory database!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'In-memory database connection failed!'
       });
     }
-
-    let verification: VerifiedRegistrationResponse;
     try {
+      const { userId, username } = req;
+      const model = await mainModel;
+      if (!model) {
+        console.log('Database connection failed!');
+        return res.status(500).json({
+          status: 'Internal server error',
+          error: 'Database connection failed!'
+        });
+      }
+      const user = await model.user.findByPk(userId, {
+        attributes: ['name']
+      });
+
+      const userPasskeys = await model.userPasskey.findAll({
+        where: { userId }
+      });
+
+      const options: PublicKeyCredentialCreationOptionsJSON =
+        await generateRegistrationOptions({
+          rpName,
+          rpID,
+          userName: username,
+          userDisplayName: user?.name,
+          attestationType: 'none',
+          excludeCredentials: userPasskeys.map((passkey) => ({
+            id: passkey.id,
+            transports: passkey.transports
+          })),
+          authenticatorSelection: {
+            residentKey: 'required',
+            userVerification: 'preferred'
+          }
+        });
+
+      await inMemModel.webAuthnRegisterOption.create({
+        userId,
+        options
+      });
+
+      return res.status(200).json({
+        status: 'Success',
+        data: { options }
+      });
+    } catch (error) {
+      await inMemModel.webAuthnRegisterOption.truncate({
+        cascade: true,
+        restartIdentity: true
+      });
+      console.error('generateRegisterOptions error >>>', error);
+
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: `${error instanceof Error ? error.message : error}`
+      });
+    }
+  },
+  async verifyRegisterOptions(req: Request, res: Response) {
+    const inMemModel = req.inMemModel;
+    if (!inMemModel) {
+      console.log('Failed to initialize in-memory database!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'In-memory database failed!'
+      });
+    }
+    try {
+      const { userId } = req;
+      const { options }: { options: RegistrationResponseJSON } = req.body;
+
+      const inMemOption = await inMemModel.webAuthnRegisterOption.findOne({
+        where: { userId }
+      });
+
+      const memoryOptions = inMemOption?.options;
+      if (!memoryOptions?.challenge) {
+        await inMemModel.webAuthnRegisterOption.truncate({
+          cascade: true,
+          restartIdentity: true
+        });
+        return res.status(404).json({
+          status: 'Not found',
+          error: 'Webauthn registration option not found!'
+        });
+      }
+
+      const client = Bowser.parse(req.headers['user-agent'] || '');
+      const isMobile = client.platform.type !== 'desktop';
+      let verification: VerifiedRegistrationResponse;
       verification = await verifyRegistrationResponse({
         response: options,
-        expectedChallenge: currentOptions.challenge,
+        requireUserVerification: isMobile,
+        expectedChallenge: memoryOptions.challenge,
         expectedOrigin: origin,
         expectedRPID: rpID
       });
-    } catch (error) {
-      console.error(error);
-      inMemModel.sequelize.close();
 
-      return res.status(500).json({
-        status: 'Bad request',
-        error: error instanceof Error ? error.message : 'Internal server error'
-      });
-    }
+      const { verified, registrationInfo } = verification;
+      if (verified && registrationInfo) {
+        const { credential, credentialDeviceType, credentialBackedUp } =
+          registrationInfo;
 
-    const { verified, registrationInfo } = verification;
-
-    if (verified && registrationInfo) {
-      const { credential, credentialDeviceType, credentialBackedUp } =
-        registrationInfo;
-
-      const model = await models;
-      const userPasskeys = await model.userPasskey.findAll({
-        where: {
-          userId
-        }
-      });
-
-      const existingPasskey = userPasskeys.find(
-        (key) => key.id === credential.id
-      );
-
-      const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
-      const token = await model.refreshToken.findByPk(refreshToken, {
-        attributes: ['clientId']
-      });
-      const clientId = token?.clientId;
-
-      if (!existingPasskey && clientId) {
-        const client = Bowser.parse(req.headers['user-agent'] || '');
-        const clientBrowser = client.browser.name;
-        const clientOs = client.os.name;
-        const isMobile = client.platform.type !== 'desktop';
-        if (!clientBrowser || !clientOs) {
-          return res.status(400).json({
-            status: 'Bad request',
-            error: 'No user-agent header provided'
+        const model = await mainModel;
+        if (!model) {
+          console.log('Database connection failed!');
+          return res.status(500).json({
+            status: 'Internal server error',
+            error: 'Database connection failed!'
           });
         }
-
-        await model.userPasskey.create({
-          id: credential.id,
-          userId,
-          clientId,
-          clientBrowser,
-          clientOs,
-          isMobile,
-          publicKey: credential.publicKey,
-          counter: credential.counter,
-          deviceType: credentialDeviceType,
-          backedUp: credentialBackedUp,
-          transports: credential.transports
+        const userPasskeys = await model.userPasskey.findAll({
+          where: {
+            userId
+          }
         });
-      }
-    }
-    inMemModel.sequelize.close();
 
-    return res.status(200).json({ status: 'Success', message: { verified } });
+        const existingPasskey = userPasskeys.find(
+          (key) => key.id === credential.id
+        );
+
+        const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
+        const token = await model.refreshToken.findByPk(refreshToken, {
+          attributes: ['clientId']
+        });
+        const clientId = token?.clientId;
+
+        if (!existingPasskey && clientId) {
+          const clientBrowser = client.browser.name;
+          const clientOs = client.os.name;
+          if (!clientBrowser || !clientOs) {
+            return res.status(400).json({
+              status: 'Bad request',
+              error: 'No user-agent header provided'
+            });
+          }
+
+          await model.userPasskey.create({
+            id: credential.id,
+            userId,
+            clientId,
+            clientBrowser,
+            clientOs,
+            isMobile,
+            publicKey: Buffer.from(credential.publicKey),
+            counter: credential.counter,
+            deviceType: credentialDeviceType,
+            backedUp: credentialBackedUp,
+            transports: credential.transports
+          });
+        }
+      }
+      await inMemModel.webAuthnRegisterOption.truncate({
+        cascade: true,
+        restartIdentity: true
+      });
+
+      return res.status(200).json({ status: 'Success', message: { verified } });
+    } catch (error) {
+      await inMemModel.webAuthnRegisterOption.truncate({
+        cascade: true,
+        restartIdentity: true
+      });
+      console.error('verifyRegisterOptions error >>>', error);
+
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: `${error instanceof Error ? error.message : error}`
+      });
+    }
   },
   async generateLoginOptions(req: Request, res: Response) {
-    const { userId } = req;
-    const model = await models;
-    const userPasskeys = await model.userPasskey.findAll({
-      where: {
-        userId
+    const inMemModel = req.inMemModel;
+    if (!inMemModel) {
+      console.log('Failed to initialize in-memory database!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'In-memory database failed!'
+      });
+    }
+    try {
+      const { emailOrUsername, clientId } = req.body;
+      const model = await mainModel;
+      if (!model) {
+        console.log('Database connection failed!');
+        return res.status(500).json({
+          status: 'Internal server error',
+          error: 'Database connection failed!'
+        });
       }
-    });
 
-    const options: PublicKeyCredentialRequestOptionsJSON =
-      await generateAuthenticationOptions({
-        rpID,
-        allowCredentials: userPasskeys.map((passkey) => ({
+      const payload = (emailOrUsername as string).trim();
+      const user = (await model.user.findOne({
+        where: {
+          [Op.or]: [
+            { email: payload },
+            where(fn('lower', col('username')), payload.toLowerCase())
+          ]
+        },
+        attributes: ['id'],
+        include: {
+          model: model.userPasskey,
+          attributes: ['id', 'transports', 'clientId', 'userId'],
+          where: { clientId }
+        }
+      })) as User & { UserPasskeys: UserPasskey[] };
+
+      const userPasskey = user.UserPasskeys.find(
+        (passkey) => passkey.clientId === clientId && passkey.userId === user.id
+      );
+      if (!userPasskey) {
+        return res
+          .status(404)
+          .json({ status: 'Not found', message: "User passkey doesn't exist" });
+      }
+
+      const allowCredentials = user.UserPasskeys.map((passkey) => {
+        return {
           id: passkey.id,
           transports: passkey.transports
-        }))
+        };
+      });
+      const options: PublicKeyCredentialRequestOptionsJSON =
+        await generateAuthenticationOptions({
+          rpID,
+          allowCredentials,
+          userVerification: 'preferred'
+        });
+
+      const optionId = options.allowCredentials?.at(0)?.id;
+      if (!optionId) {
+        inMemModel.webAuthnLoginOption.truncate({
+          cascade: true,
+          restartIdentity: true
+        });
+        return res
+          .status(404)
+          .json({ status: 'Not found', error: 'No passkeys was found!' });
+      }
+
+      await inMemModel.webAuthnLoginOption.create({
+        passkeyId: optionId,
+        options
       });
 
-    await inMemModel.webAuthnLoginOption.create({
-      userId,
-      options
-    });
+      return res.status(200).json({
+        status: 'Success',
+        data: { options }
+      });
+    } catch (error) {
+      inMemModel.webAuthnLoginOption.truncate({
+        cascade: true,
+        restartIdentity: true
+      });
+      console.error('generateLoginOptions error >>>', error);
 
-    return res.status(200).json({
-      status: 'Success',
-      data: { options }
-    });
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: `${error instanceof Error ? error.message : error}`
+      });
+    }
   },
   async verifyLoginOptions(req: Request, res: Response) {
-    const {
-      options,
-      clientId
-    }: { options: AuthenticationResponseJSON; clientId: string } = req.body;
-    const { userId } = req;
-
-    const inMemOption = await inMemModel.webAuthnLoginOption.findOne({
-      where: { userId }
-    });
-    const currentOptions = inMemOption?.options;
-    if (!currentOptions?.challenge) {
-      inMemModel.sequelize.close();
-
-      return res.status(404).json({
-        status: 'Not found',
-        error: 'Webauthn temporary option not found!'
+    const inMemModel = req.inMemModel;
+    if (!inMemModel) {
+      console.log('Failed to initialize in-memory database!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'In-memory database failed!'
       });
     }
-    const model = await models;
-    const userPasskey = (await model.userPasskey.findByPk(options.id, {
-      include: {
-        model: model.user,
-        attributes: [
-          'id',
-          'username',
-          'name',
-          'email',
-          'description',
-          'password',
-          'roleId',
-          'picture'
-        ]
-      }
-    })) as UserPasskey & { User: User };
-
-    if (!userPasskey || !userPasskey.User.id) {
-      inMemModel.sequelize.close();
-
-      return res.status(404).json({
-        status: 'Not found',
-        error: !userPasskey
-          ? 'User passkey not found!'
-          : !userPasskey.User && 'User not found!'
-      });
-    }
-
-    let verification;
     try {
+      const { option }: { option: AuthenticationResponseJSON } = req.body;
+      if (!option) {
+        return res.status(400).json({
+          status: 'Bad request',
+          error: 'Webauthn options not provided!'
+        });
+      }
+
+      const inMemOption = await inMemModel.webAuthnLoginOption.findOne({
+        where: { passkeyId: option.id }
+      });
+      const currentOptions = inMemOption?.options;
+      if (!currentOptions?.challenge) {
+        inMemModel.webAuthnLoginOption.truncate({
+          cascade: true,
+          restartIdentity: true
+        });
+        return res.status(404).json({
+          status: 'Not found',
+          error: 'Webauthn temporary option not found!'
+        });
+      }
+
+      const model = await mainModel;
+      if (!model) {
+        console.log('Database connection failed!');
+        return res.status(500).json({
+          status: 'Internal server error',
+          error: 'Database connection failed!'
+        });
+      }
+      const userPasskey = await model.userPasskey.findByPk(option.id);
+
+      if (!userPasskey) {
+        inMemModel.webAuthnLoginOption.truncate({
+          cascade: true,
+          restartIdentity: true
+        });
+        return res.status(404).json({
+          status: 'Not found',
+          error: 'User passkey not found!'
+        });
+      }
+
+      const client = Bowser.parse(req.headers['user-agent'] || '');
+      const isMobile = client.platform.type !== 'desktop';
+      let verification;
       verification = await verifyAuthenticationResponse({
-        response: options,
+        response: option,
+        requireUserVerification: isMobile,
         expectedChallenge: currentOptions.challenge,
         expectedOrigin: origin,
         expectedRPID: rpID,
@@ -246,48 +363,38 @@ const webAuthnController = {
           transports: userPasskey.transports
         }
       });
+
+      const { verified } = verification;
+      if (verified) {
+        await inMemModel.webAuthnLoginOption.update(
+          { verifiedAuthInfo: verification },
+          { where: { passkeyId: option.id } }
+        );
+
+        return res.status(200).json({
+          status: 'Success',
+          data: { verified }
+        });
+      } else {
+        inMemModel.webAuthnLoginOption.truncate({
+          cascade: true,
+          restartIdentity: true
+        });
+        return res.status(400).json({
+          status: 'Bad request',
+          message: 'Token or biometric key invalid!'
+        });
+      }
     } catch (error) {
-      inMemModel.sequelize.close();
+      inMemModel.webAuthnLoginOption.truncate({
+        cascade: true,
+        restartIdentity: true
+      });
+      console.error('verifyLoginOptions error >>>', error);
 
       return res.status(500).json({
         status: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Internal server error!'
-      });
-    }
-    const { verified } = verification;
-    if (verified) {
-      const [accessToken, newRefreshToken] =
-        await jwtService.generateJwtService(
-          userPasskey.User.username,
-          userPasskey.User.roleId,
-          userPasskey.User.id
-        );
-      await model.refreshToken.create({
-        token: newRefreshToken,
-        userId: userPasskey.User.id,
-        clientId
-      });
-      inMemModel.sequelize.close();
-
-      return res.status(200).json({
-        status: 'Success',
-        data: {
-          username: userPasskey.User.username,
-          name: userPasskey.User.name,
-          email: userPasskey.User.email,
-          desc: userPasskey.User.description,
-          role: userPasskey.User.roleId === 1 ? 'Admin' : 'Author',
-          img: userPasskey.User.picture,
-          access: accessToken,
-          refresh: newRefreshToken
-        }
-      });
-    } else {
-      inMemModel.sequelize.close();
-
-      return res.status(400).json({
-        status: 'Bad request',
-        message: 'Token or biometric key invalid!'
+        error: `${error instanceof Error ? error.message : error}`
       });
     }
   }

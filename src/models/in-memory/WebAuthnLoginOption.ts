@@ -1,11 +1,13 @@
 import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/server/script/deps';
+import { VerifiedAuthenticationResponse } from '@simplewebauthn/server';
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import { InMemoryModel } from './InMemoryModel';
 
 interface WebAuthnLoginOptionModel {
   id?: number;
-  userId: string;
+  passkeyId: string;
   options: PublicKeyCredentialRequestOptionsJSON;
+  verifiedAuthInfo?: VerifiedAuthenticationResponse;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -19,7 +21,7 @@ export type WebAuthnLoginOptionStatic = typeof Model & {
   associate: (model: InMemoryModel) => void;
 };
 
-function webAuthnLoginOption(
+function WebAuthnLoginOption(
   sequelize: Sequelize,
   dataTypes: typeof DataTypes
 ) {
@@ -33,12 +35,15 @@ function webAuthnLoginOption(
         autoIncrement: true,
         type: dataTypes.INTEGER
       },
-      userId: {
+      passkeyId: {
         allowNull: false,
-        type: dataTypes.UUID
+        type: dataTypes.STRING
       },
       options: {
         allowNull: false,
+        type: dataTypes.JSON
+      },
+      verifiedAuthInfo: {
         type: dataTypes.JSON
       },
       createdAt: {
@@ -57,4 +62,4 @@ function webAuthnLoginOption(
   return webAuthnLoginOption;
 }
 
-export default webAuthnLoginOption;
+export default WebAuthnLoginOption;

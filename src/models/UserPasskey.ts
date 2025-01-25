@@ -6,6 +6,11 @@ import {
 } from '@simplewebauthn/server/script/deps';
 import type { MainModel } from './MainModel';
 import { DataTypes, Model, Sequelize } from 'sequelize';
+import { getMainModel } from '../utils/helper';
+import User from './User';
+import UserSetting from './UserSetting';
+import UserTotpSecret from './UserTotpSecret';
+import { TwoFAMethod } from '../utils/enums';
 
 interface UserPasskeyModel {
   id: Base64URLString;
@@ -91,10 +96,47 @@ const UserPasskey = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
       tableName: 'user_passkeys',
       underscored: true,
       hooks: {
-        afterCreate: (userPasskey) => {
+        async afterCreate(attributes) {
           console.log(
-            `(userId: ${userPasskey.userId} | device: ${userPasskey.deviceType}) passkey has been ADDED.`
+            `(userId: ${attributes.userId} | clientId: ${attributes.clientId}) passkey has been ADDED.`
           );
+          const model = await getMainModel();
+          if (!model) return;
+          const user = (await model.user.findByPk(attributes.userId, {
+            include: [{ model: model.userSetting, attributes: ['twoFaMethod'] }]
+          })) as User & {
+            UserSetting: UserSetting;
+          };
+
+          if (!user.UserSetting.twoFaMethod) {
+            model.userSetting.update(
+              { twoFaMethod: TwoFAMethod.Passkey },
+              { where: { userId: attributes.userId } }
+            );
+          }
+        },
+        async afterDestroy(instance, _) {
+          console.log(
+            `(userId: ${instance.userId} | clientId: ${instance.clientId}) passkey has been DELETED.`
+          );
+          const model = await getMainModel();
+          if (!model) return;
+          const user = (await model.user.findByPk(instance.userId, {
+            include: [{ model: model.userTotpSecret }]
+          })) as User & {
+            UserTotpSecret: UserTotpSecret;
+          };
+          if (user.UserTotpSecret) {
+            await model.userSetting.update(
+              { twoFaMethod: TwoFAMethod.App },
+              { where: { userId: instance.userId } }
+            );
+          } else {
+            await model.userSetting.update(
+              { twoFaMethod: null },
+              { where: { userId: instance.userId } }
+            );
+          }
         }
       }
     }

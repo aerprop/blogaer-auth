@@ -1,15 +1,16 @@
-import MainModel from '../models/MainModel';
-import models from '../models/MainModel';
+import mainModel from '../models/MainModel';
 
 export async function getAllUserImgsAndUsernames() {
-  const model = await models;
+  const model = await mainModel;
+  if (!model) return;
   return await model.user.findAll({
     attributes: ['id', 'username', 'picture']
   });
 }
 
 export async function getUserById(userId: string) {
-  const model = await models;
+  const model = await mainModel;
+  if (!model) return;
   return model.user.findByPk(userId, {
     attributes: ['username', 'picture']
   });
@@ -28,5 +29,5 @@ export function generateRandomChars(length: number) {
 }
 
 export async function getMainModel() {
-  return await MainModel;
+  return await mainModel;
 }

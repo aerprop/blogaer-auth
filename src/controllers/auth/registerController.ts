@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import models from '../../models/MainModel';
+import mainModel from '../../models/MainModel';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { LoginReqBody } from '../../types/common';
@@ -15,7 +15,14 @@ export default async function registerController(req: Request, res: Response) {
   const hashPassword = await bcrypt.hash(password, 10);
 
   try {
-    const model = await models;
+    const model = await mainModel;
+    if (!model) {
+      console.log('Database connection failed!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'Database connection failed!'
+      });
+    }
     const user = await model.user.create({
       username,
       email,

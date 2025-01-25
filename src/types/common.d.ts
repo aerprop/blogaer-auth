@@ -19,6 +19,10 @@ export type Decoded = {
   };
 };
 
+export type RefreshTokenInfo = {
+  UserInfo: { id: string; username: string };
+};
+
 export type VerifyToken = { userId: string; username: string; role: string };
 
 export type VerifyOauthCode = { oauthCode: string };

@@ -19,7 +19,7 @@ export type WebAuthnRegisterOptionStatic = typeof Model & {
   associate: (model: InMemoryModel) => void;
 };
 
-function webAuthnRegisterOption(
+function WebAuthnRegisterOption(
   sequelize: Sequelize,
   dataTypes: typeof DataTypes
 ) {
@@ -57,4 +57,4 @@ function webAuthnRegisterOption(
   return webAuthnRegisterOption;
 }
 
-export default webAuthnRegisterOption;
+export default WebAuthnRegisterOption;

@@ -1,6 +1,6 @@
-import postController from '../controllers/postController';
-import postRpcChan from '../middlewares/postRpcChan';
-import { routerInit } from './router';
+import postController from '../../controllers/postController';
+import postRpcChan from '../../middlewares/postRpcChan';
+import { routerInit } from '../router';
 
 const postPublicRoute = routerInit
   .use(postRpcChan)

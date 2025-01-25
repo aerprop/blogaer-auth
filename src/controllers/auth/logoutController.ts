@@ -1,32 +1,27 @@
 import { Request, Response } from 'express';
-import models from '../../models/MainModel';
-import RefreshToken from '../../models/RefreshToken';
-
-type RefreshTokenJoinUser = RefreshToken & {
-  User: {
-    username: string;
-  };
-};
+import mainModel from '../../models/MainModel';
+import jwt from 'jsonwebtoken';
+import { RefreshTokenInfo } from '../../types/common';
 
 const logoutController = async (req: Request, res: Response) => {
   const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
   if (!refreshToken) return res.sendStatus(204);
 
-  const model = await models;
-  const foundToken = (await model.refreshToken.findOne({
-    where: { token: refreshToken },
-    include: [
-      {
-        model: model.user,
-        attributes: ['username']
-      }
-    ]
-  })) as RefreshTokenJoinUser;
+  const model = await mainModel;
+  if (!model) {
+    console.log('Database connection failed!');
+    return res.status(500).json({
+      status: 'Internal server error',
+      error: 'Database connection failed!'
+    });
+  }
 
   try {
     await model.refreshToken.destroy({
-      where: { token: refreshToken }
+      where: { token: refreshToken },
     });
+
+    const decodedToken = jwt.decode(refreshToken) as RefreshTokenInfo;
 
     return res.sendStatus(204);
   } catch (error) {

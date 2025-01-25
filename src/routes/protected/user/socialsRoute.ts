@@ -1,5 +1,5 @@
-import socialsController from '../../controllers/user-settings/socialsController';
-import { router } from '../router';
+import socialsController from '../../../controllers/user-settings/socialsController';
+import { router } from '../../router';
 
 const socialsRoute = router()
   .patch(

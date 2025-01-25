@@ -17,7 +17,7 @@ type TotpSecretStatic = typeof Model & {
   associate: (model: InMemoryModel) => void;
 };
 
-const TotpSecret = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
+function TotpSecret(sequelize: Sequelize, dataTypes: typeof DataTypes) {
   const totpSecret = sequelize.define<TotpSecret>(
     'TotpSecret',
     {
@@ -45,11 +45,11 @@ const TotpSecret = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
     },
     {
       tableName: 'totp_secrets',
-      underscored: true,
+      underscored: true
     }
   ) as TotpSecretStatic;
 
   return totpSecret;
-};
+}
 
 export default TotpSecret;

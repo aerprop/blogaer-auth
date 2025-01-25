@@ -5,7 +5,8 @@ import cookieParser from 'cookie-parser';
 import routes from './routes';
 import verifyToken from './middlewares/verifyToken';
 import credentials from './middlewares/credentials';
-import verifyCookie from './middlewares/verifyCookie';
+import verifyRefreshCookie from './middlewares/verifyRefreshCookie';
+import verifyAccessCookie from './middlewares/verifyAccessCookie';
 
 const app = express();
 const PORT = process.env.PORT || 3939;
@@ -17,14 +18,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(routes.savedAccounts);
-app.use(routes.register);
-app.use(routes.login);
-app.use(routes.googleLogin);
-app.use(routes.logout);
-app.use(routes.refresh);
+app.use(routes.authPublic);
+app.use(routes.webAuthnPublic);
+app.use(routes.authAppPublic);
 app.use(routes.postPublic);
 
-app.use(verifyCookie);
+app.use(verifyRefreshCookie);
+app.use(routes.logout);
+app.use(routes.refresh);
+
+app.use(verifyAccessCookie);
 app.use(verifyToken);
 app.use(routes.account);
 app.use(routes.security);

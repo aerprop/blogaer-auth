@@ -25,19 +25,21 @@ export type MainModel = {
   sequelize: Sequelize;
 };
 
+let MainModel: MainModel | null = null;
+
 async function dbConnect(sequelize: Sequelize, retries = 0) {
   try {
-    const connection = await sequelize.authenticate();
+    await sequelize.authenticate();
+    await sequelize.sync();
     console.log('Connected to Sqlite database ✔✔✔');
-
-    return connection;
   } catch (error) {
-    console.log(
+    console.error(
       'Failed to connect to Sqlite database:',
       retries < 5 ? 'Retrying in 60 seconds.' : 'Max retries have been reached.'
     );
     if (retries >= 5) {
-      throw new Error('Failed to connect to MySQL after 5 attempts ✖✖✖');
+      console.error('Failed to connect to MySQL after 5 attempts ✖✖✖');
+      return;
     }
     await new Promise((resolve) => setTimeout(resolve, 60000));
 
@@ -58,7 +60,7 @@ async function init() {
     logging: false
   });
 
-  const models: MainModel = {
+  MainModel = {
     refreshToken: RefreshToken(sequelize, DataTypes),
     savedAccount: SavedAccount(sequelize, DataTypes),
     user: User(sequelize, DataTypes),
@@ -71,17 +73,21 @@ async function init() {
     dataTypes: DataTypes,
     sequelize
   };
-  Object.values(models).forEach((model) => {
-    if ('associate' in model) {
-      model.associate(models);
+  Object.values(MainModel).forEach((model) => {
+    if ('associate' in model && MainModel) {
+      model.associate(MainModel);
     }
   });
 
-  dbConnect(sequelize)
-    .then(() => sequelize.sync())
-    .catch((err) => console.log('Sequelize sync failed ✖✖✖', err));
+  await dbConnect(sequelize);
 
-  return models;
+  return MainModel;
 }
 
-export default init();
+async function mainModel() {
+  if (!MainModel) await init();
+
+  return MainModel;
+}
+
+export default mainModel();

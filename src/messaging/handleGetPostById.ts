@@ -27,6 +27,7 @@ export default async function handleGetPostById(
         if (msg) {
           const post: Post = JSON.parse(msg.content.toString());
           if (!post.userId) return;
+          
           const user = await getUserById(post.userId);
           delete post.userId;
           const data = {

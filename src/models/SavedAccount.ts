@@ -1,7 +1,6 @@
 'use strict';
-import { BelongsToMany, DataTypes, Model, Sequelize } from 'sequelize';
+import { DataTypes, Model, Sequelize } from 'sequelize';
 import type { MainModel } from './MainModel';
-import User from './User';
 
 interface SavedAccountModel {
   clientId: string;
@@ -11,6 +10,7 @@ interface SavedAccountModel {
 
 interface SavedAccount extends Model<SavedAccountModel>, SavedAccountModel {
   addUser: (user: any, options?: any) => Promise<any>;
+  removeUser: (user: any, options?: any) => Promise<any>;
 }
 
 type SavedAccountStatic = typeof Model & {

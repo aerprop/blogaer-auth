@@ -10,14 +10,18 @@ export default async function handleGetPostsByPage(
 ) {
   try {
     const userList = await getAllUserImgsAndUsernames();
+    if (!userList) throw new Error('Database connection failed!');
+
     const { queue } = await channel.assertQueue('', {
       exclusive: true,
       durable: false
     });
+
     channel.publish('postRpcExchange', 'post.get.by.page.key', message, {
       persistent: false,
       replyTo: queue
     });
+
     const timeout = setTimeout(() => {
       res.sendStatus(408);
       channel.close();
@@ -58,11 +62,11 @@ export default async function handleGetPostsByPage(
     );
   } catch (error) {
     console.error(
-      '###handleGetPostsByPage.ts Error getting queue >>>',
+      'handleGetPostsByPage.ts ERROR >>>',
       error instanceof Error ? error.message : 'Unexpected error occurred!'
     );
     res.status(500).json({
-      status: 'Internal Server Error',
+      status: 'Internal server error',
       error:
         error instanceof Error ? error.message : 'Unexpected error occurred!'
     });

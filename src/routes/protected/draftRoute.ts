@@ -1,8 +1,8 @@
-import verifyAuthor from '../middlewares/verifyAuthor';
-import draftRpcChan from '../middlewares/draftRpcChan';
-import draftTopicChan from '../middlewares/draftTopicChan';
-import draftController from '../controllers/draftController';
-import { router } from './router';
+import verifyAuthor from '../../middlewares/verifyAuthor';
+import draftRpcChan from '../../middlewares/draftRpcChan';
+import draftTopicChan from '../../middlewares/draftTopicChan';
+import draftController from '../../controllers/draftController';
+import { router } from '../router';
 
 const draftRoute = router()
   .use(verifyAuthor)

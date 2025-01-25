@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import models from '../../models/MainModel';
+import mainModel from '../../models/MainModel';
 import { AnyObj } from '../../types/common';
 
 const socialsController = {
@@ -7,7 +7,14 @@ const socialsController = {
     const userId = req.userId;
     const { social, link } = req.body;
 
-    const model = await models;
+    const model = await mainModel;
+    if (!model) {
+      console.log('Database connection failed!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'Database connection failed!'
+      });
+    }
     const [userSocial, isCreated] = await model.userSocial.findOrCreate({
       where: {
         userId,
@@ -38,7 +45,14 @@ const socialsController = {
   },
   async getSocials(req: Request, res: Response) {
     const userId = req.userId;
-    const model = await models;
+    const model = await mainModel;
+    if (!model) {
+      console.log('Database connection failed!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'Database connection failed!'
+      });
+    }
     const socials = (await model.userSocial.findAll({
       where: { userId },
       attributes: ['social', 'link']

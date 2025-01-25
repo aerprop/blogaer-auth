@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 import axios from 'axios';
-import models from '../../models/MainModel';
+import mainModel from '../../models/MainModel';
 import { generateRandomChars } from '../../utils/helper';
 import jwtService from '../../services/user/jwtService';
 
@@ -47,7 +46,14 @@ export default async function googleOauth2Controller(
     const userInfo = userInfoRes.data;
     console.log('google oauth user info >>>', userInfo);
 
-    const model = await models;
+    const model = await mainModel;
+    if (!model) {
+      console.log('Database connection failed!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'Database connection failed!'
+      });
+    }
     const [user, isCreated] = await model.user.findOrCreate({
       where: {
         email: userInfo.email
@@ -58,16 +64,7 @@ export default async function googleOauth2Controller(
         email: userInfo.email,
         picture: userInfo.picture,
         verified: true
-      },
-      attributes: [
-        'id',
-        'username',
-        'name',
-        'email',
-        'description',
-        'roleId',
-        'picture'
-      ]
+      }
     });
 
     if (isCreated && user.id) {
@@ -78,7 +75,7 @@ export default async function googleOauth2Controller(
       });
     }
 
-    const [accessToken, newRefreshToken] = await jwtService.generateJwtService(
+    const [accessToken, newRefreshToken] = await jwtService.generateJwt(
       user.username,
       user.roleId,
       user.id
@@ -105,10 +102,13 @@ export default async function googleOauth2Controller(
       }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      status: 'Error',
-      message: `Login failed: ${error}`
+    console.error(
+      'Login Error >>>',
+      `${error instanceof Error ? error.message : error}`
+    );
+    return res.status(500).json({
+      status: 'Internal server error',
+      error: `${error instanceof Error ? error.message : error}`
     });
   }
 }

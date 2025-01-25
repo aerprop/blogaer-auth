@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
-import MainModel from '../../../models/MainModel';
+import mainModel from '../../../models/MainModel';
 import userService from '../../../services/user/userService';
 import User from '../../../models/User';
+import MainModel from '../../../models/MainModel';
+import { Op } from 'sequelize';
 
 type UserJoins =
   | (User & {
@@ -15,7 +17,14 @@ type UserJoins =
 const securityController = {
   async getSecurity(req: Request, res: Response) {
     const { userId } = req;
-    const model = await MainModel;
+    const model = await mainModel;
+    if (!model) {
+      console.log('Database connection failed!');
+      return res.status(500).json({
+        status: 'Internal server error',
+        error: 'Database connection failed!'
+      });
+    }
     const userOauth = await userService.getOauthAssociations(userId);
     const userJoins = (await model.user.findByPk(userId, {
       attributes: ['password'],
@@ -34,9 +43,9 @@ const securityController = {
         }
       ]
     })) as UserJoins;
-    console.log(userJoins);
 
     const userPasskeys = userJoins?.UserPasskeys;
+    const isUserPasskeys = userPasskeys ? userPasskeys.length > 0 : false;
     const isTwoFAEnabled = userJoins?.UserSetting?.twoFaEnabled;
     const twoFAMethod = userJoins?.UserSetting?.twoFaMethod;
     const userSecret = userJoins?.UserTotpSecret;
@@ -48,7 +57,7 @@ const securityController = {
         userTwoFA: {
           twoFAMethod: twoFAMethod != null ? twoFAMethod : null,
           isTwoFAEnabled: isTwoFAEnabled != null ? isTwoFAEnabled : null,
-          isPasskey: userPasskeys ? true : null,
+          isPasskey: isUserPasskeys ? true : null,
           isAuthApp: userSecret ? true : null
         },
         userOauth

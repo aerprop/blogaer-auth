@@ -1,28 +1,28 @@
-import savedAccountsRoute from './savedAccountsRoute';
-import registerRoute from './auth/registerRoute';
-import loginRoute from './auth/loginRoute';
-import logoutRoute from './auth/logoutRoute';
-import refreshTokenRoute from './auth/refreshTokenRoute';
-import postRoute from './postRoute';
-import googleOauth2Route from './auth/googleOauth2Route';
-import postPublicRoute from './postPublicRoute';
-import draftRoute from './draftRoute';
-import accountRoute from './user/accountRoute';
-import socialsRoute from './user/socialsRoute';
-import settingsRoute from './user/settingsRoute';
-import webAuthnRoute from './auth/two-fa/webAuthnRoute';
-import securityRoute from './user/securityRoute';
-import twoFARoute from './user/twoFARoute';
-import authAppRoute from './auth/two-fa/authAppRoute';
+import savedAccountsRoute from './public/savedAccountsRoute';
+import logoutRoute from './protected/auth/logoutRoute';
+import refreshTokenRoute from './protected/auth/refreshTokenRoute';
+import postRoute from './protected/postRoute';
+import postPublicRoute from './public/postPublicRoute';
+import draftRoute from './protected/draftRoute';
+import accountRoute from './protected/user/accountRoute';
+import socialsRoute from './protected/user/socialsRoute';
+import settingsRoute from './protected/user/settingsRoute';
+import webAuthnRoute from './protected/auth/two-fa/webAuthnRoute';
+import securityRoute from './protected/user/securityRoute';
+import twoFARoute from './protected/user/twoFARoute';
+import authAppRoute from './protected/auth/two-fa/authAppRoute';
+import webAuthnPublicRoute from './public/auth/two-fa/webAuthnPublicRoute';
+import authPublicRoute from './public/auth/authPublicRoute';
+import authAppPublicRoute from './public/auth/two-fa/authAppPublicRoute';
 
 const routes = {
   savedAccounts: savedAccountsRoute,
-  register: registerRoute,
-  login: loginRoute,
-  googleLogin: googleOauth2Route,
+  authPublic: authPublicRoute,
+  authAppPublic: authAppPublicRoute,
+  webAuthnPublic: webAuthnPublicRoute,
+  postPublic: postPublicRoute,
   logout: logoutRoute,
   refresh: refreshTokenRoute,
-  postPublic: postPublicRoute,
   account: accountRoute,
   security: securityRoute,
   twoFA: twoFARoute,

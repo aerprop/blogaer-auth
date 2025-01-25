@@ -59,7 +59,13 @@ const RefreshToken = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
           console.log(
             `(userId: ${attributes.userId} | clientId: ${attributes.clientId}) has Logged in.`
           );
+
           const model = await getMainModel();
+          if (!model) {
+            console.log('Database connection failed!');
+            return;
+          }
+
           type UserJoin = User & {
             UserSetting?: { twoFaMethod: string };
           };
@@ -87,6 +93,11 @@ const RefreshToken = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
                 `(userId: ${attributes.userId} | clientId: ${attributes.clientId}) Account has been saved.`
               );
             }
+          } else {
+            await model.userSetting.findOrCreate({
+              where: { userId: attributes.userId },
+              defaults: { userId: attributes.userId }
+            });
           }
         },
         afterDestroy(instance, _) {

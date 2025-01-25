@@ -7,7 +7,7 @@ interface UserSettingModel {
   id?: number;
   userId: string;
   twoFaEnabled?: boolean;
-  twoFaMethod?: TwoFAMethod;
+  twoFaMethod?: TwoFAMethod | null;
   preference?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -36,12 +36,12 @@ const UserSetting = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
         type: dataTypes.UUID
       },
       twoFaEnabled: {
+        allowNull: false,
         type: dataTypes.BOOLEAN,
         defaultValue: false
       },
       twoFaMethod: {
-        type: dataTypes.STRING,
-        defaultValue: TwoFAMethod.Passkey
+        type: dataTypes.STRING
       },
       preference: {
         type: dataTypes.JSON

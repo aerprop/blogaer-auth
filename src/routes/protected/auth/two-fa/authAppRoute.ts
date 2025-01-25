@@ -1,5 +1,5 @@
-import authAppController from '../../../controllers/auth/two-fa/authAppController';
-import { router } from '../../router';
+import authAppController from '../../../../controllers/auth/two-fa/authAppController';
+import { router } from '../../../router';
 
 const authAppRoute = router()
   .get(
@@ -8,7 +8,7 @@ const authAppRoute = router()
   )
   .post(
     `${process.env.BASE_ROUTE}/auth/two-fa/auth-app/verify`,
-    authAppController.verifyTotp
+    authAppController.verifyAuthAppToken
   );
 
 export default authAppRoute;

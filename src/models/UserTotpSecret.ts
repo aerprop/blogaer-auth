@@ -1,6 +1,11 @@
 'use strict';
+import { getMainModel } from '../utils/helper';
 import type { MainModel } from './MainModel';
 import { DataTypes, Model, Sequelize } from 'sequelize';
+import User from './User';
+import UserSetting from './UserSetting';
+import { TwoFAMethod } from '../utils/enums';
+import UserPasskey from './UserPasskey';
 
 interface UserTotpSecretModel {
   id?: string;
@@ -10,7 +15,9 @@ interface UserTotpSecretModel {
   updatedAt?: string;
 }
 
-interface UserTotpSecret extends Model<UserTotpSecretModel>, UserTotpSecretModel {}
+interface UserTotpSecret
+  extends Model<UserTotpSecretModel>,
+    UserTotpSecretModel {}
 
 type UserTotpSecretStatic = typeof Model & {
   new (values?: Record<string, unknown>, options?: any): UserTotpSecret;
@@ -47,10 +54,49 @@ const UserTotpSecret = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
       tableName: 'user_totp_secrets',
       underscored: true,
       hooks: {
-        afterCreate: (userTotpSecret) => {
-          console.log(
-            `(userId: ${userTotpSecret.userId}) TOTP secret has been ADDED.`
-          );
+        async afterCreate(attributes) {
+          console.log(`(userId: ${attributes.userId}) TOTP has been ADDED.`);
+          const model = await getMainModel();
+          if (!model) {
+            console.log('Database connection failed!');
+            return;
+          }
+          const user = (await model.user.findByPk(attributes.userId, {
+            include: [{ model: model.userSetting, attributes: ['twoFaMethod'] }]
+          })) as User & {
+            UserSetting: UserSetting;
+          };
+
+          if (!user.UserSetting.twoFaMethod) {
+            model.userSetting.update(
+              { twoFaMethod: TwoFAMethod.App },
+              { where: { userId: attributes.userId } }
+            );
+          }
+        },
+        async afterDestroy(instance, _) {
+          console.log(`(userId: ${instance.userId}) TOTP has been DELETED.`);
+          const model = await getMainModel();
+          if (!model) {
+            console.log('Database connection failed!');
+            return;
+          }
+          const user = (await model.user.findByPk(instance.userId, {
+            include: [{ model: model.userPasskey }]
+          })) as User & {
+            UserPasskeys: UserPasskey[];
+          };
+          if (user.UserPasskeys && user.UserPasskeys.length > 0) {
+            await model.userSetting.update(
+              { twoFaMethod: TwoFAMethod.Passkey },
+              { where: { userId: instance.userId } }
+            );
+          } else {
+            await model.userSetting.update(
+              { twoFaMethod: null },
+              { where: { userId: instance.userId } }
+            );
+          }
         }
       }
     }

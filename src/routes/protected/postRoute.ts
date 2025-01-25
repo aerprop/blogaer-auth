@@ -1,8 +1,8 @@
-import verifyAuthor from '../middlewares/verifyAuthor';
-import postController from '../controllers/postController';
-import postTopicChan from '../middlewares/postTopicChan';
-import postRpcChan from '../middlewares/postRpcChan';
-import { router } from './router';
+import verifyAuthor from '../../middlewares/verifyAuthor';
+import postController from '../../controllers/postController';
+import postTopicChan from '../../middlewares/postTopicChan';
+import postRpcChan from '../../middlewares/postRpcChan';
+import { router } from '../router';
 
 const postRoute = router()
   .use(verifyAuthor)

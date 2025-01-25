@@ -1,7 +1,7 @@
 'use strict';
 import bcrypt from 'bcrypt';
 import { config } from 'dotenv';
-import models from '../models/MainModel';
+import mainModel from '../models/MainModel';
 
 config();
 
@@ -28,7 +28,11 @@ export default {
     ];
 
     const createUserData = async (user) => {
-      const model = await models;
+      const model = await mainModel;
+      if (!model) {
+        console.log('Database connection failed!');
+        return;
+      }
       return model.user.create({
         ...user,
         password: bcrypt.hashSync(process.env.USER_PASSWORD, 8),

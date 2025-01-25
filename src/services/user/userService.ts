@@ -1,9 +1,16 @@
-import MainModel from '../../models/MainModel';
+import mainModel from '../../models/MainModel';
 import { AnyObj } from '../../types/common';
 
 const userService = {
   async getOauthAssociations(userId: string) {
-    const model = await MainModel;
+    const model = await mainModel;
+    if (!model) {
+      console.log('Database connection failed!');
+      return {
+        status: 'Internal server error',
+        error: 'Database connection failed!'
+      };
+    }
     const associations = (await model.userOauth.findAll({
       where: { userId },
       attributes: ['oauthProvider', 'oauthEmail']

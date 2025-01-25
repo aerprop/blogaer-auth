@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 const jwtService = {
-  async generateJwtService(username: string, roleId?: number, id?: string) {
+  async generateJwt(username: string, roleId?: number, id?: string) {
     const accessToken = jwt.sign(
       {
         UserInfo: {
