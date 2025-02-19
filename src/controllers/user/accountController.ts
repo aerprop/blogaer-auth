@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import MainModel from '../../models/MainModel';
 
 const accountController = {
   async patchAccount(req: Request, res: Response) {
     const { username, email, name, description, picture } = req.body;
-    const model = await mainModel;
+    const model = await MainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
@@ -21,6 +21,9 @@ const accountController = {
       status: 'Success',
       message: 'Description successfully updated.'
     });
+  },
+  async resetPassword(req: Request, res: Response) {
+    // to be continued...
   }
 };
 

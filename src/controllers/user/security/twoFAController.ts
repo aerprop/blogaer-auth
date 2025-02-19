@@ -87,7 +87,7 @@ const twoFAController = {
         UserPasskeys: UserPasskey[];
         UserTotpSecret: UserTotpSecret;
       };
-      if (!user.UserSetting || (!user.UserPasskeys && !user.UserTotpSecret)) {
+      if (!user.UserSetting.twoFaMethod || (!user.UserPasskeys && !user.UserTotpSecret)) {
         throw new Error('Missing two factor authentication!');
       }
 
