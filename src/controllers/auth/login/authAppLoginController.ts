@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import mainModel from '../../../models/MainModel';
 import { col, fn, Op, where } from 'sequelize';
-import User from '../../models/User';
-import UserTotpSecret from '../../models/UserTotpSecret';
+import User from '../../../models/User';
+import UserTotpSecret from '../../../models/UserTotpSecret';
 import { authenticator } from 'otplib';
-import jwtService from '../../services/user/jwtService';
+import jwtService from '../../../services/auth/jwtService';
+import { generateClientId } from '../../../utils/helper';
 
 export default async function authAppLoginController(
   req: Request,
   res: Response
 ) {
   try {
-    const { emailOrUsername, token, clientId } = req.body;
-    console.log(req.body)
+    const { emailOrUsername, token } = req.body;
     const model = await mainModel;
     if (!model) {
       console.log('Database connection failed!');
@@ -36,8 +36,6 @@ export default async function authAppLoginController(
       }
     })) as User & { UserTotpSecret: UserTotpSecret };
 
-    console.log(user);
-
     if (!user.id) {
       return res
         .status(404)
@@ -56,6 +54,13 @@ export default async function authAppLoginController(
       user.roleId,
       user.id
     );
+
+    const { clientId } = generateClientId(req.headers['user-agent']);
+    if (!clientId) {
+      return res
+        .status(400)
+        .json({ status: 'Bad request', error: 'User agent is invalid!' });
+    }
     await model.refreshToken.create({
       token: newRefreshToken,
       userId: user.id,

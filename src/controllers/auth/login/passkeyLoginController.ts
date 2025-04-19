@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import mainModel from '../../../models/MainModel';
 import { col, fn, Op, where } from 'sequelize';
-import jwtService from '../../services/user/jwtService';
+import jwtService from '../../../services/auth/jwtService';
+import { generateClientId } from '../../../utils/helper';
 
 export default async function passkeyLoginController(
   req: Request,
@@ -16,7 +17,7 @@ export default async function passkeyLoginController(
     });
   }
   try {
-    const { emailOrUsername, optionId, clientId } = req.body;
+    const { emailOrUsername, optionId } = req.body;
     const inMemOption = await inMemModel.webAuthnLoginOption.findOne({
       where: { passkeyId: optionId }
     });
@@ -64,6 +65,12 @@ export default async function passkeyLoginController(
         user.id
       );
 
+      const { clientId } = generateClientId(req.headers['user-agent']);
+      if (!clientId) {
+        return res
+          .status(400)
+          .json({ status: 'Bad request', error: 'User agent is invalid!' });
+      }
       await model.refreshToken.create({
         token: newRefreshToken,
         userId: user.id,

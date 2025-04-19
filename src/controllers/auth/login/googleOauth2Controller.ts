@@ -1,17 +1,15 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
-import mainModel from '../../models/MainModel';
-import { generateRandomChars } from '../../utils/helper';
-import jwtService from '../../services/user/jwtService';
+import MainModel from '../../../models/MainModel';
+import { generateClientId, generateRandomChars } from '../../../utils/helper';
+import jwtService from '../../../services/auth/jwtService';
+import { OauthProvider } from '../../../utils/enums';
 
 export default async function googleOauth2Controller(
   req: Request,
   res: Response
 ) {
-  const codes = req.oauthCode.split('-');
-  const clientId = codes[codes.length - 1];
-  const code = req.oauthCode.replace('-' + clientId, '');
-
+  const code = req.oauthCode;
   if (!code) {
     return res.status(400).json({
       status: 'Error',
@@ -30,8 +28,6 @@ export default async function googleOauth2Controller(
     if (!tokenRes.data) throw new Error(tokenRes.statusText);
 
     const oauthToken = tokenRes.data.access_token;
-    console.log('google oauth access token >>>', oauthToken);
-
     const userInfoRes = await axios.get(
       'https://www.googleapis.com/oauth2/v3/userinfo',
       {
@@ -46,7 +42,7 @@ export default async function googleOauth2Controller(
     const userInfo = userInfoRes.data;
     console.log('google oauth user info >>>', userInfo);
 
-    const model = await mainModel;
+    const model = await MainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
@@ -70,7 +66,7 @@ export default async function googleOauth2Controller(
     if (isCreated && user.id) {
       await model.userOauth.create({
         userId: user.id,
-        oauthProvider: 'Google',
+        oauthProvider: OauthProvider.Google,
         oauthEmail: user.email
       });
     }
@@ -81,14 +77,20 @@ export default async function googleOauth2Controller(
       user.id
     );
 
+    const { clientId } = generateClientId(req.headers['user-agent']);
+    if (!clientId) {
+      return res
+        .status(400)
+        .json({ status: 'Bad request', error: 'User agent is invalid!' });
+    }
     await model.refreshToken.create({
       token: newRefreshToken,
       userId: `${user.id}`,
-      loginWith: 'Google',
+      loginWith: OauthProvider.Google,
       clientId
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       status: 'Success',
       data: {
         username: user.username,

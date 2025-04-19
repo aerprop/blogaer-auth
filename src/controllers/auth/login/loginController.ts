@@ -1,11 +1,12 @@
-import mainModel from '../../models/MainModel';
+import mainModel from '../../../models/MainModel';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import { col, fn, Op, where } from 'sequelize';
-import jwtService from '../../services/user/jwtService';
+import jwtService from '../../../services/auth/jwtService';
+import { generateClientId } from '../../../utils/helper';
 
 export default async function loginController(req: Request, res: Response) {
-  const { emailOrUsername, password, clientId } = req.body;
+  const { emailOrUsername, password } = req.body;
 
   const model = await mainModel;
   if (!model) {
@@ -49,6 +50,12 @@ export default async function loginController(req: Request, res: Response) {
         user.id
       );
 
+      const { clientId } = generateClientId(req.headers['user-agent']);
+      if (!clientId) {
+        return res
+          .status(400)
+          .json({ status: 'Bad request', error: 'User agent is invalid!' });
+      }
       await model.refreshToken.create({
         token: newRefreshToken,
         userId: user.id,
