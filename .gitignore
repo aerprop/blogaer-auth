@@ -33,3 +33,6 @@ Thumbs.db
 
 # GraalVM native image output
 native-image-output/
+
+# Other
+src/utils/email-templates/html/*.html
