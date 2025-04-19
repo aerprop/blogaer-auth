@@ -1,6 +1,4 @@
 import savedAccountsRoute from './public/savedAccountsRoute';
-import logoutRoute from './protected/auth/logoutRoute';
-import refreshTokenRoute from './protected/auth/refreshTokenRoute';
 import postRoute from './protected/postRoute';
 import postPublicRoute from './public/postPublicRoute';
 import draftRoute from './protected/draftRoute';
@@ -14,24 +12,30 @@ import authAppRoute from './protected/auth/two-fa/authAppRoute';
 import webAuthnPublicRoute from './public/auth/two-fa/webAuthnPublicRoute';
 import authPublicRoute from './public/auth/authPublicRoute';
 import authAppPublicRoute from './public/auth/two-fa/authAppPublicRoute';
+import emailRoute from './protected/emailRoute';
+import semiProtectedRoute from './semi/semiProtectedRoute';
 
 const routes = {
-  savedAccounts: savedAccountsRoute,
-  authPublic: authPublicRoute,
-  authAppPublic: authAppPublicRoute,
-  webAuthnPublic: webAuthnPublicRoute,
-  postPublic: postPublicRoute,
-  logout: logoutRoute,
-  refresh: refreshTokenRoute,
-  account: accountRoute,
-  security: securityRoute,
-  twoFA: twoFARoute,
-  socials: socialsRoute,
-  settings: settingsRoute,
-  webAuthn: webAuthnRoute,
-  authApp: authAppRoute,
-  post: postRoute,
-  draft: draftRoute
+  public: [
+    savedAccountsRoute,
+    authPublicRoute,
+    authAppPublicRoute,
+    webAuthnPublicRoute,
+    postPublicRoute
+  ],
+  semi: [semiProtectedRoute],
+  protected: [
+    webAuthnRoute,
+    authAppRoute,
+    accountRoute,
+    securityRoute,
+    twoFARoute,
+    socialsRoute,
+    settingsRoute,
+    emailRoute,
+    postRoute,
+    draftRoute
+  ]
 };
 
 export default routes;

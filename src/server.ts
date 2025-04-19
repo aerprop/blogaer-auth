@@ -17,27 +17,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(routes.savedAccounts);
-app.use(routes.authPublic);
-app.use(routes.webAuthnPublic);
-app.use(routes.authAppPublic);
-app.use(routes.postPublic);
+routes.public.forEach((route) => app.use(route));
 
 app.use(verifyRefreshCookie);
-app.use(routes.logout);
-app.use(routes.refresh);
+routes.semi.forEach((route) => app.use(route));
 
 app.use(verifyAccessCookie);
 app.use(verifyToken);
-app.use(routes.account);
-app.use(routes.security);
-app.use(routes.twoFA);
-app.use(routes.socials);
-app.use(routes.settings);
-app.use(routes.webAuthn);
-app.use(routes.authApp);
-app.use(routes.post);
-app.use(routes.draft);
+routes.protected.forEach((route) => app.use(route));
 
 app.listen(PORT, () =>
   console.log(`Blogaer auth service running on port: ${PORT}`)
