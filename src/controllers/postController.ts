@@ -6,12 +6,13 @@ import handleGetPostsByUserId from '../messaging/handleGetPostsByUserId';
 import handlePatchPost from '../messaging/handlePatchPost';
 import { PostPayload } from '../types/dto/PostPayload';
 import handleDeletePost from '../messaging/handleDeletePost';
+import MainModel from '../models/MainModel';
 
 const blogController = {
   addPost(req: Request, res: Response) {
     const { rabbitChan } = req;
     const { id, title, content, tags }: PostPayload = req.body;
-    const userId = req.userId;
+    const { userId } = req;
     const message = Buffer.from(
       JSON.stringify({ id, userId, title: title.trim(), content, tags })
     );

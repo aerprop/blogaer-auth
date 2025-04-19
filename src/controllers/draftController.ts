@@ -10,7 +10,7 @@ const draftController = {
   addDraft(req: Request, res: Response) {
     const { rabbitChan } = req;
     const { id, title, content }: PostPayload = req.body;
-    const userId = req.userId;
+    const { userId } = req;
     const message = Buffer.from(
       JSON.stringify({ id, userId, title: title.trim(), content })
     );
