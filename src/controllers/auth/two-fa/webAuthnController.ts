@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import mainModel from '../../../models/MainModel';
+import MainModel from '../../../models/MainModel';
 import {
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
@@ -13,11 +13,10 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse
 } from '@simplewebauthn/server';
-import Bowser from 'bowser';
 import UserPasskey from '../../../models/UserPasskey';
 import User from '../../../models/User';
-import jwtService from '../../../services/user/jwtService';
 import { col, fn, Op, where } from 'sequelize';
+import { generateClientId } from '../../../utils/helper';
 
 const rpName = 'Blogaer-auth';
 const rpID = 'localhost';
@@ -34,7 +33,7 @@ const webAuthnController = {
     }
     try {
       const { userId, username } = req;
-      const model = await mainModel;
+      const model = await MainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({
@@ -118,8 +117,13 @@ const webAuthnController = {
         });
       }
 
-      const client = Bowser.parse(req.headers['user-agent'] || '');
-      const isMobile = client.platform.type !== 'desktop';
+      const { userAgent } = generateClientId(req.headers['user-agent']);
+      if (!userAgent) {
+        return res
+          .status(400)
+          .json({ status: 'Bad request', error: 'User agent is invalid!' });
+      }
+      const isMobile = userAgent.platform === 'mobile';
       let verification: VerifiedRegistrationResponse;
       verification = await verifyRegistrationResponse({
         response: options,
@@ -134,7 +138,7 @@ const webAuthnController = {
         const { credential, credentialDeviceType, credentialBackedUp } =
           registrationInfo;
 
-        const model = await mainModel;
+        const model = await MainModel;
         if (!model) {
           console.log('Database connection failed!');
           return res.status(500).json({
@@ -159,8 +163,8 @@ const webAuthnController = {
         const clientId = token?.clientId;
 
         if (!existingPasskey && clientId) {
-          const clientBrowser = client.browser.name;
-          const clientOs = client.os.name;
+          const clientBrowser = userAgent.browser;
+          const clientOs = userAgent.os;
           if (!clientBrowser || !clientOs) {
             return res.status(400).json({
               status: 'Bad request',
@@ -211,9 +215,15 @@ const webAuthnController = {
         error: 'In-memory database failed!'
       });
     }
+    const { clientId } = generateClientId(req.headers['user-agent']);
+    if (!clientId) {
+      return res
+        .status(400)
+        .json({ status: 'Bad request', error: 'User agent is invalid!' });
+    }
     try {
-      const { emailOrUsername, clientId } = req.body;
-      const model = await mainModel;
+      const { emailOrUsername } = req.body;
+      const model = await MainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({
@@ -326,7 +336,7 @@ const webAuthnController = {
         });
       }
 
-      const model = await mainModel;
+      const model = await MainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({
@@ -347,8 +357,13 @@ const webAuthnController = {
         });
       }
 
-      const client = Bowser.parse(req.headers['user-agent'] || '');
-      const isMobile = client.platform.type !== 'desktop';
+      const { userAgent } = generateClientId(req.headers['user-agent'] || '');
+      if (!userAgent) {
+        return res
+          .status(400)
+          .json({ status: 'Bad request', error: 'User agent is invalid!' });
+      }
+      const isMobile = userAgent.platform === 'mobile';
       let verification;
       verification = await verifyAuthenticationResponse({
         response: option,
