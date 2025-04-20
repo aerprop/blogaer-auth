@@ -8,7 +8,7 @@ export default async function registerController(req: Request, res: Response) {
   const { username, email, password, deviceId }: LoginReqBody = req.body;
   if (!password) {
     return res.status(400).json({
-      status: 'Error',
+      status: 'Bad request',
       message: `Register failed: password is empty`
     });
   }
