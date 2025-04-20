@@ -1,6 +1,7 @@
 'use strict';
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import type { MainModel } from './MainModel';
+import User from './User';
 
 interface SavedAccountModel {
   clientId: string;
@@ -10,6 +11,7 @@ interface SavedAccountModel {
 
 interface SavedAccount extends Model<SavedAccountModel>, SavedAccountModel {
   addUser: (user: any, options?: any) => Promise<any>;
+  getUsers: (options?: any) => Promise<User[]>;
   removeUser: (user: any, options?: any) => Promise<any>;
 }
 
