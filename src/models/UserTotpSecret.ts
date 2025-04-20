@@ -8,7 +8,7 @@ import { TwoFAMethod } from '../utils/enums';
 import UserPasskey from './UserPasskey';
 
 interface UserTotpSecretModel {
-  id?: string;
+  id?: number;
   userId: string;
   secret: string;
   createdAt?: string;
@@ -33,7 +33,7 @@ const UserTotpSecret = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
         primaryKey: true,
         unique: true,
         autoIncrement: true,
-        type: dataTypes.SMALLINT
+        type: dataTypes.INTEGER
       },
       userId: {
         allowNull: false,

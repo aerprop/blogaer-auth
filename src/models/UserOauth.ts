@@ -3,7 +3,7 @@ import type { MainModel } from './MainModel';
 import { DataTypes, Model, Sequelize } from 'sequelize';
 
 interface UserOauthModel {
-  id?: string;
+  id?: number;
   userId: string;
   oauthProvider: string;
   oauthEmail?: string;
@@ -27,7 +27,7 @@ const UserOauth = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
         primaryKey: true,
         unique: true,
         autoIncrement: true,
-        type: dataTypes.SMALLINT
+        type: dataTypes.INTEGER
       },
       userId: {
         allowNull: false,
