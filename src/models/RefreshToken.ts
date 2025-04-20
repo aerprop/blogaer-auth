@@ -99,6 +99,15 @@ const RefreshToken = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
               defaults: { userId: attributes.userId }
             });
           }
+
+          if ((await model.refreshToken.count()) > 1) {
+            await model.refreshToken.destroy({
+              where: {
+                clientId: attributes.clientId,
+                token: { [Op.ne]: attributes.token }
+              }
+            });
+          }
         },
         afterDestroy(instance, _) {
           console.log(
