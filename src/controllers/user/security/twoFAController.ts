@@ -19,7 +19,7 @@ const twoFAController = {
       });
     }
 
-    const username = req.params.username;
+    const { username } = req.params;
     const payload = (username as string).trim();
     const user = (await model.user.findOne({
       where: {
@@ -47,7 +47,7 @@ const twoFAController = {
   },
   async getTwoFAStatus(req: Request, res: Response) {
     try {
-      const emailOrUsername = req.params.emailOrUsername;
+      const { emailOrUsername } = req.params;
       const model = await mainModel;
       if (!model) {
         console.log('Database connection failed!');
@@ -87,7 +87,10 @@ const twoFAController = {
         UserPasskeys: UserPasskey[];
         UserTotpSecret: UserTotpSecret;
       };
-      if (!user.UserSetting.twoFaMethod || (!user.UserPasskeys && !user.UserTotpSecret)) {
+      if (
+        !user.UserSetting.twoFaMethod ||
+        (!user.UserPasskeys && !user.UserTotpSecret)
+      ) {
         throw new Error('Missing two factor authentication!');
       }
 
@@ -111,12 +114,15 @@ const twoFAController = {
         error: 'Database connection failed!'
       });
     }
+
     const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
     const token = await model.refreshToken.findByPk(refreshToken, {
       attributes: ['clientId']
     });
+
     const clientId = token?.clientId;
     await model.userPasskey.destroy({ where: { userId, clientId } });
+
     const userSecret = await model.userTotpSecret.findOne({
       where: { userId }
     });

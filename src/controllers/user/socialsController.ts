@@ -4,7 +4,7 @@ import { AnyObj } from '../../types/common';
 
 const socialsController = {
   async patchSocials(req: Request, res: Response) {
-    const userId = req.userId;
+    const { userId } = req;
     const { social, link } = req.body;
 
     const model = await mainModel;
@@ -44,7 +44,7 @@ const socialsController = {
     });
   },
   async getSocials(req: Request, res: Response) {
-    const userId = req.userId;
+    const { userId } = req;
     const model = await mainModel;
     if (!model) {
       console.log('Database connection failed!');
