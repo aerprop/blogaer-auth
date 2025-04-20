@@ -1,4 +1,6 @@
+import { UAParser } from 'ua-parser-js';
 import mainModel from '../models/MainModel';
+import { UserAgent } from '../types/common';
 
 export async function getAllUserImgsAndUsernames() {
   const model = await mainModel;
@@ -30,4 +32,48 @@ export function generateRandomChars(length: number) {
 
 export async function getMainModel() {
   return await mainModel;
+}
+
+export function generateClientId(userAgent: string = '') {
+  if (!userAgent) return { clientId: null, userAgent: null };
+  const uaParsed = new UAParser(userAgent);
+  const client = uaParsed.getResult();
+  const data = {
+    browser: client.browser.name,
+    cpu: client.cpu.architecture,
+    platform: client.device.type || 'desktop',
+    vendor: client.device.vendor,
+    engine: client.engine.name,
+    os: `${client.os.name} v-${client.os.version}`
+  };
+  const stringData = JSON.stringify(data);
+  const secret = process.env.USER_AGENT_SECRET;
+  const divider = process.env.USER_AGENT_DIVIDER;
+  const clientId = Buffer.from(`${secret}${divider}${stringData}`).toString(
+    'base64'
+  );
+
+  return { clientId, userAgent: data };
+}
+
+export function getUserAgentData(clientId: string) {
+  const decoded = Buffer.from(clientId, 'base64').toString();
+  const divider = process.env.USER_AGENT_DIVIDER;
+  const [secret, value] = decoded.split(`${divider}`);
+  const SECRET = process.env.USER_AGENT_SECRET;
+
+  if (secret !== SECRET) {
+    return null;
+  }
+
+  return JSON.parse(value) as UserAgent;
+}
+
+export function generateOtp() {
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    const digit = Math.floor(Math.random() * 10);
+    result += digit;
+  }
+  return result;
 }
