@@ -10,6 +10,7 @@ import UserPasskey from './UserPasskey';
 import UserSetting from './UserSetting';
 import UserTotpSecret from './UserTotpSecret';
 import SavedAccount from './SavedAccount';
+import UserRequest from './UserRequest';
 
 export type MainModel = {
   refreshToken: ReturnType<typeof RefreshToken>;
@@ -21,6 +22,7 @@ export type MainModel = {
   userPasskey: ReturnType<typeof UserPasskey>;
   userTotpSecret: ReturnType<typeof UserTotpSecret>;
   userSetting: ReturnType<typeof UserSetting>;
+  userRequest: ReturnType<typeof UserRequest>;
   dataTypes: typeof DataTypes;
   sequelize: Sequelize;
 };
@@ -70,6 +72,7 @@ async function init() {
     userPasskey: UserPasskey(sequelize, DataTypes),
     userTotpSecret: UserTotpSecret(sequelize, DataTypes),
     userSetting: UserSetting(sequelize, DataTypes),
+    userRequest: UserRequest(sequelize, DataTypes),
     dataTypes: DataTypes,
     sequelize
   };
