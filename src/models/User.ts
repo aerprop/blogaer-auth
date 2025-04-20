@@ -17,7 +17,9 @@ interface UserModel {
   updatedAt?: string;
 }
 
-interface User extends Model<UserModel>, UserModel {}
+interface User extends Model<UserModel>, UserModel {
+  removeSavedAccount: (savedAccount: any, options?: any) => Promise<any>;
+}
 
 type UserStatic = typeof Model & {
   new (values?: Record<string, unknown>, options?: any): User;
@@ -102,7 +104,8 @@ const User = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
 
     user.belongsToMany(model.savedAccount, {
       through: 'user_saved_accounts',
-      timestamps: false
+      timestamps: false,
+      onDelete: 'cascade'
     });
 
     user.belongsTo(model.userRole, {
@@ -119,6 +122,10 @@ const User = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
     });
 
     user.hasMany(model.userPasskey, {
+      foreignKey: 'user_id'
+    });
+
+    user.hasMany(model.userRequest, {
       foreignKey: 'user_id'
     });
 
