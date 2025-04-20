@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import mainModel from '../../models/MainModel';
-import jwt from 'jsonwebtoken';
-import { RefreshTokenInfo } from '../../types/common';
 
 const logoutController = async (req: Request, res: Response) => {
   const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
@@ -21,11 +19,9 @@ const logoutController = async (req: Request, res: Response) => {
       where: { token: refreshToken },
     });
 
-    const decodedToken = jwt.decode(refreshToken) as RefreshTokenInfo;
-
     return res.sendStatus(204);
   } catch (error) {
-    console.error('Logout', error);
+    console.error('logoutController >>> Logout error');
 
     return res.status(500).json({
       status: 'Internal server error',
