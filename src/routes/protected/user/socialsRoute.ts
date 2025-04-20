@@ -1,4 +1,4 @@
-import socialsController from '../../../controllers/user-settings/socialsController';
+import socialsController from '../../../controllers/user/socialsController';
 import { router } from '../../router';
 
 const socialsRoute = router()

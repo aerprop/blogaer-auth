@@ -1,11 +1,12 @@
 import { routerInit } from '../../router';
 import validateRequest from '../../../middlewares/validateRequest';
 import registerController from '../../../controllers/auth/registerController';
-import loginController from '../../../controllers/auth/loginController';
-import twoFAController from '../../../controllers/user-settings/security/twoFAController';
+import loginController from '../../../controllers/auth/login/loginController';
+import twoFAController from '../../../controllers/user/security/twoFAController';
 import verifyOauthCode from '../../../middlewares/verifyOauthCode';
-import googleOauth2Controller from '../../../controllers/auth/googleOauth2Controller';
+import googleOauth2Controller from '../../../controllers/auth/login/googleOauth2Controller';
 import authValidations from '../../../middlewares/auth/authValidations';
+import githubOauth2Controller from '../../../controllers/auth/login/githubOauth2Controller';
 
 const authPublicRoute = routerInit
   .post(`${process.env.BASE_ROUTE}/auth/register`, [
@@ -21,6 +22,10 @@ const authPublicRoute = routerInit
   .get(`${process.env.BASE_ROUTE}/auth/google`, [
     verifyOauthCode,
     googleOauth2Controller
+  ])
+  .get(`${process.env.BASE_ROUTE}/auth/github`, [
+    verifyOauthCode,
+    githubOauth2Controller
   ])
   .get(
     `${process.env.BASE_ROUTE}/auth/check-two-fa/:emailOrUsername`,

@@ -1,4 +1,4 @@
-import settingsController from '../../../controllers/user-settings/settingsController';
+import settingsController from '../../../controllers/user/settingsController';
 import { router } from '../../router';
 
 const settingsRoute = router().patch(

@@ -1,4 +1,4 @@
-import twoFAController from '../../../controllers/user-settings/security/twoFAController';
+import twoFAController from '../../../controllers/user/security/twoFAController';
 import { router } from '../../router';
 
 const twoFARoute = router()

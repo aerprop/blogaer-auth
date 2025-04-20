@@ -1,4 +1,4 @@
-import authAppLoginController from '../../../../controllers/auth/authAppLoginController';
+import authAppLoginController from '../../../../controllers/auth/login/authAppLoginController';
 import initializeInMemDB from '../../../../middlewares/initializeInMemDB';
 import { router } from '../../../router';
 

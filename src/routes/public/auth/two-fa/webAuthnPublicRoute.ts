@@ -1,4 +1,4 @@
-import passkeyLoginController from '../../../../controllers/auth/passkeyLoginController';
+import passkeyLoginController from '../../../../controllers/auth/login/passkeyLoginController';
 import webAuthnController from '../../../../controllers/auth/two-fa/webAuthnController';
 import initializeInMemDB from '../../../../middlewares/initializeInMemDB';
 import { router } from '../../../router';
