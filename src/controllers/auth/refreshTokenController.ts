@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import MainModel from '../../models/MainModel';
 import jwt, { JwtPayload, Secret, VerifyErrors } from 'jsonwebtoken';
 import RefreshToken from '../../models/RefreshToken';
 import { Decoded } from '../../types/common';
@@ -22,7 +22,7 @@ export default async function refreshTokenController(
       message: 'No login cookie provided.'
     });
   }
-  const model = await mainModel;
+  const model = await MainModel;
   if (!model) {
     console.log('Database connection failed!');
     return res.status(500).json({
@@ -30,8 +30,7 @@ export default async function refreshTokenController(
       error: 'Database connection failed!'
     });
   }
-  const foundToken = (await model.refreshToken.findOne({
-    where: { token: refreshToken },
+  const foundToken = (await model.refreshToken.findByPk(refreshToken, {
     include: [
       {
         model: model.user,
