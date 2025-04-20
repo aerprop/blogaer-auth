@@ -3,11 +3,11 @@ import { routerInit } from '../router';
 
 const savedAccountsPublicRoute = routerInit
   .get(
-    `${process.env.BASE_ROUTE}/saved-accounts/:clientId`,
+    `${process.env.BASE_ROUTE}/saved-accounts`,
     savedAccountsController.getSavedAccounts
   )
   .delete(
-    `${process.env.BASE_ROUTE}/saved-accounts/:username/:clientId`,
+    `${process.env.BASE_ROUTE}/saved-accounts/:username`,
     savedAccountsController.deleteSavedAccount
   );
 
