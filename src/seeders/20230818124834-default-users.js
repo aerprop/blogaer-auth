@@ -1,5 +1,5 @@
 'use strict';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import { config } from 'dotenv';
 import mainModel from '../models/MainModel';
 
@@ -35,7 +35,7 @@ export default {
       }
       return model.user.create({
         ...user,
-        password: bcrypt.hashSync(process.env.USER_PASSWORD, 8),
+        password: bcryptjs.hashSync(process.env.USER_PASSWORD, 8),
         picture: null,
         created_at: new Date(),
         updated_at: new Date()

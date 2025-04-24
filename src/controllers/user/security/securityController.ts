@@ -4,7 +4,7 @@ import User from '../../../models/User';
 import MainModel from '../../../models/MainModel';
 import { CommonStatus, EmailSubject } from '../../../utils/enums';
 import userRequestService from '../../../services/user/userRequestService';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import { generateClientId } from '../../../utils/helper';
 
 type UserJoins =
@@ -103,7 +103,7 @@ const securityController = {
         error: 'Database connection failed!'
       });
     }
-    const hashPassword = await bcrypt.hash(password, 10);
+    const hashPassword = await bcryptjs.hash(password, 10);
     const [updatedData] = await model.user.update(
       { password: hashPassword },
       {

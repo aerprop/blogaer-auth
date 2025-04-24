@@ -1,5 +1,5 @@
 import mainModel from '../../../models/MainModel';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import { Request, Response } from 'express';
 import { col, fn, Op, where } from 'sequelize';
 import jwtService from '../../../services/auth/jwtService';
@@ -34,7 +34,7 @@ export default async function loginController(req: Request, res: Response) {
     });
   }
 
-  const correctPassword = await bcrypt.compare(password, user.password);
+  const correctPassword = await bcryptjs.compare(password, user.password);
   if (!correctPassword) {
     return res.status(401).json({
       status: 'Unauthorized',

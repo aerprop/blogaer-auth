@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import mainModel from '../../models/MainModel';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { LoginReqBody } from '../../types/common';
 
@@ -12,7 +12,7 @@ export default async function registerController(req: Request, res: Response) {
       message: `Register failed: password is empty`
     });
   }
-  const hashPassword = await bcrypt.hash(password, 10);
+  const hashPassword = await bcryptjs.hash(password, 10);
 
   try {
     const model = await mainModel;
