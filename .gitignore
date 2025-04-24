@@ -12,7 +12,7 @@ logs
 # Docker
 # Dockerfile
 # .dockerignore
-# Dockerfile.dev
+Dockerfile.dev
 
 # Sequelize
 /migrations/
