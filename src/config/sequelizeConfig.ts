@@ -1,7 +1,4 @@
-require('@babel/register')({ extensions: ['.ts', '.js'] });
-require('dotenv').config();
-
-module.exports = {
+const sequelizeConfig = {
   development: {
     username: `${process.env.DEV_DB_USER}`,
     password: `${process.env.DEV_DB_PASSWORD}`,
@@ -25,3 +22,5 @@ module.exports = {
     dialect: 'sqlite'
   }
 };
+
+export default sequelizeConfig;

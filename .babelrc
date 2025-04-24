@@ -1,4 +1,0 @@
-{
-  "presets": ["@babel/preset-env", "@babel/preset-typescript"],
-  "ignore": ["src/index.js", "src/config/sequelizeConfigBabel.ts"]
-}
