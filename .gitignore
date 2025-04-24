@@ -15,13 +15,9 @@ logs
 # Dockerfile.dev
 
 # Sequelize
-sequelize-config.js
 /migrations/
 /seeders/
 /models/
-
-# Build dir (Babel)
-.dist
 
 # IDE/Editor specific
 .vscode/
@@ -31,8 +27,8 @@ sequelize-config.js
 Thumbs.db
 .DS_Store
 
-# GraalVM native image output
-native-image-output/
+# bun bundle output
+blogaer-auth
 
 # Other
 src/utils/email-templates/html/*.html
