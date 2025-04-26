@@ -1,7 +1,18 @@
-FROM node:18-alpine
+# for bun exe.
+# stage 1:
+FROM oven/bun:1-alpine AS build
+WORKDIR /build
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+COPY src ./src
+COPY blogaer_auth.db ./data/db/blogaer_auth.db
+RUN bun build ./src/server.ts --compile --outfile blogaer-auth
+# stage 2:
+FROM alpine:3.20.6
+RUN apk add --no-cache libstdc++ libgcc
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 3030
-CMD [ "npm", "run", "dev" ]
+COPY --from=build /build/blogaer-auth /app/blogaer-auth
+RUN mkdir -p /data/db
+COPY --from=build /build/data/db/blogaer_auth.db /data/db/blogaer_auth.db
+EXPOSE 3030:3030
+CMD [ "/app/blogaer-auth" ]

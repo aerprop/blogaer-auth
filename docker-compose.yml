@@ -1,0 +1,17 @@
+services:
+  auth:
+    image: auth-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: build
+    container_name: auth
+    ports:
+      - '3030:3030'
+    volumes:
+      - data:/data/db/sqlite
+    environment:
+      NODE_ENV: development
+
+volumes:
+  data:

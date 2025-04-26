@@ -57,8 +57,7 @@ async function init() {
     database: config.database,
     dialect: config.dialect as Dialect,
     host: config.host,
-    storage:
-      '/home/anekra/Dev/Docker/docker-compose-config/sqlite/db/blogaer_auth.db',
+    storage: config.storage,
     logging: false
   });
 

@@ -3,7 +3,7 @@ node_modules/
 npm-debug.log
 *.env
 
-# Compiled binary addons (Sequelize)
+# Compiled binary addons
 build/
 
 # Logs
@@ -19,6 +19,9 @@ Dockerfile.dev
 /seeders/
 /models/
 
+# DB
+blogaer_auth.db
+
 # IDE/Editor specific
 .vscode/
 .idea/
@@ -26,9 +29,6 @@ Dockerfile.dev
 # Miscellaneous
 Thumbs.db
 .DS_Store
-
-# bun bundle output
-blogaer-auth
 
 # Other
 src/utils/email-templates/html/*.html
