@@ -21,8 +21,4 @@ async function rabbitConnect(retries = 0) {
   }
 }
 
-async function init() {
-  return await rabbitConnect();
-}
-
-export default init();
+export default rabbitConnect();

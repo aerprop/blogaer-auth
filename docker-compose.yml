@@ -3,15 +3,20 @@ services:
     image: auth-service:latest
     build:
       context: .
-      dockerfile: Dockerfile.dev
-      target: build
+      dockerfile: dockerfile.dev
     container_name: auth
+    networks:
+      - rabbitmq_default
     ports:
       - '3030:3030'
     volumes:
-      - data:/data/db/sqlite
+      - data:/app/data/db
     environment:
       NODE_ENV: development
+
+networks:
+  rabbitmq_default:
+    external: true
 
 volumes:
   data:

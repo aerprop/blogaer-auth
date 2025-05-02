@@ -1,0 +1,9 @@
+FROM oven/bun:1-slim
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+COPY src ./src
+COPY blogaer_auth.db ./data/db/blogaer_auth.db
+COPY .env ./.env
+EXPOSE 3030
+CMD [ "bun", "./src/server.ts" ]

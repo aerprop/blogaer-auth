@@ -61,6 +61,8 @@ async function init() {
     logging: false
   });
 
+  await dbConnect(sequelize);
+
   MainModel = {
     refreshToken: RefreshToken(sequelize, DataTypes),
     savedAccount: SavedAccount(sequelize, DataTypes),
@@ -80,8 +82,6 @@ async function init() {
       model.associate(MainModel);
     }
   });
-
-  await dbConnect(sequelize);
 
   return MainModel;
 }

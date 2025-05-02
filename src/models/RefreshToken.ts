@@ -118,25 +118,27 @@ const RefreshToken = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
     }
   ) as RefreshTokenStatic;
 
-  refreshToken.associate = (model: MainModel) => {
-    if (model.user) {
-      refreshToken.belongsTo(model.user, {
-        foreignKey: 'user_id',
-        targetKey: 'id'
-      });
-    }
-  };
-
-  const aDayAgo = new Date();
-  aDayAgo.setDate(aDayAgo.getDate() - 1);
-
-  refreshToken.destroy({
-    where: {
-      updatedAt: {
-        [Op.lt]: aDayAgo
+  if (refreshToken) {
+    refreshToken.associate = (model: MainModel) => {
+      if (model.user) {
+        refreshToken.belongsTo(model.user, {
+          foreignKey: 'user_id',
+          targetKey: 'id'
+        });
       }
-    }
-  });
+    };
+
+    const aDayAgo = new Date();
+    aDayAgo.setDate(aDayAgo.getDate() - 1);
+
+    refreshToken.destroy({
+      where: {
+        updatedAt: {
+          [Op.lt]: aDayAgo
+        }
+      }
+    });
+  }
 
   return refreshToken;
 };
