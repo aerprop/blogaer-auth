@@ -21,7 +21,7 @@ export default async function googleOauth2Controller(
       code,
       client_id: `${process.env.GOOGLE_OAUTH2_ID}`,
       client_secret: `${process.env.GOOGLE_OAUTH2_SECRET}`,
-      redirect_uri: 'http://localhost:3000/api/auth/callback/google',
+      redirect_uri: `${process.env.REDIRECT_URL}`,
       grant_type: 'authorization_code'
     });
 

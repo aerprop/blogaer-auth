@@ -1,5 +1,5 @@
 import postController from '../../controllers/postController';
-import postRpcChan from '../../middlewares/postRpcChan';
+import postRpcChan from '../../middlewares/messaging/postRpcChan';
 import { routerInit } from '../router';
 
 const postPublicRoute = routerInit

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import rabbitConn from '../utils/rabbitMQConn';
+import rabbitConn from '../../messaging/connection/rabbitMQConn';
 
-export default async function draftRpcChan(
+export default async function draftTopicChan(
   req: Request,
   res: Response,
   next: NextFunction
@@ -9,7 +9,7 @@ export default async function draftRpcChan(
   try {
     const connection = await rabbitConn;
     const channel = await connection.createChannel();
-    await channel.assertExchange('draftRpcExchange', 'direct', {
+    await channel.assertExchange('draftTopicExchange', 'topic', {
       durable: false,
       autoDelete: false
     });
@@ -17,7 +17,7 @@ export default async function draftRpcChan(
     req.rabbitChan = channel;
     next();
   } catch (error) {
-    console.error('Creating channel failed ✘✘✘', error);
+    console.error('Rabbitmq connection failed ✘✘✘', error);
     res.status(500).json;
   }
 }

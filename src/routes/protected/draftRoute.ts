@@ -1,6 +1,6 @@
 import verifyAuthor from '../../middlewares/verifyAuthor';
-import draftRpcChan from '../../middlewares/draftRpcChan';
-import draftTopicChan from '../../middlewares/draftTopicChan';
+import draftRpcChan from '../../middlewares/messaging/draftRpcChan';
+import draftTopicChan from '../../middlewares/messaging/draftTopicChan';
 import draftController from '../../controllers/draftController';
 import { router } from '../router';
 

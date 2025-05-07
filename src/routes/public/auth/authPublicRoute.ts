@@ -3,7 +3,7 @@ import validateRequest from '../../../middlewares/validateRequest';
 import registerController from '../../../controllers/auth/registerController';
 import loginController from '../../../controllers/auth/login/loginController';
 import twoFAController from '../../../controllers/user/security/twoFAController';
-import verifyOauthCode from '../../../middlewares/verifyOauthCode';
+import verifyOauthCode from '../../../middlewares/auth/verifyOauthCode';
 import googleOauth2Controller from '../../../controllers/auth/login/googleOauth2Controller';
 import authValidations from '../../../middlewares/auth/authValidations';
 import githubOauth2Controller from '../../../controllers/auth/login/githubOauth2Controller';

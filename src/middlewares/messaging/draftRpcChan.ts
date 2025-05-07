@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import rabbitConn from '../utils/rabbitMQConn';
+import rabbitConn from '../../messaging/connection/rabbitMQConn';
 
-export default async function postRpcChan(
+export default async function draftRpcChan(
   req: Request,
   res: Response,
   next: NextFunction
@@ -9,7 +9,7 @@ export default async function postRpcChan(
   try {
     const connection = await rabbitConn;
     const channel = await connection.createChannel();
-    await channel.assertExchange('postRpcExchange', 'direct', {
+    await channel.assertExchange('draftRpcExchange', 'direct', {
       durable: false,
       autoDelete: false
     });
