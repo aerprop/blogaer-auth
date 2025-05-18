@@ -1,270 +1,253 @@
-import axios from 'axios';
 import { Request, Response } from 'express';
-import MainModel from '../../../models/MainModel';
-import { generateClientId, generateRandomChars } from '../../../utils/helper';
-import { OauthProvider } from '../../../utils/enums';
+import initMainModel from '../../../models/initMainModel';
+import {
+  closeChannel,
+  generateClientId,
+  generateRandomChars
+} from '../../../utils/helper';
+import { ExchangeName, OauthProvider } from '../../../utils/enums';
 import jwtService from '../../../services/auth/jwtService';
+import { nanoid } from 'nanoid';
 
 const oauth2Controller = {
   async google(req: Request, res: Response) {
+    const { publisherChan, consumerChan } = req;
+    const code = req.oauthCode;
+    if (!code) {
+      return res.status(400).json({
+        status: 'Error',
+        error: 'Missing github oauth2 code!'
+      });
+    }
     try {
-      const { rabbitChan } = req;
-      const code2 = req.oauthCode;
-      const message = Buffer.from(JSON.stringify({ code2 }));
-      const { queue } = await rabbitChan.assertQueue('', {
+      const { queue } = await consumerChan.assertQueue('', {
         exclusive: true,
         durable: false
       });
-      const isPublished = rabbitChan.publish(
-        'oauthRpcExchange',
-        'oauth.google',
-        message,
-        {
-          persistent: false,
-          replyTo: queue
+      const correlationId = nanoid(9);
+      const message = Buffer.from(JSON.stringify({ code }));
+      publisherChan.publish(ExchangeName.Rpc, 'oauth.google.key', message, {
+        persistent: false,
+        replyTo: queue,
+        correlationId
+      });
+      const timeout = setTimeout(() => res.sendStatus(408), 5000);
+
+      await consumerChan.consume(queue, async (msg) => {
+        if (msg) {
+          if (msg.properties.correlationId !== correlationId) return;
+
+          const model = await initMainModel;
+          if (!model) {
+            console.log('Database connection failed!');
+            return res.status(500).json({
+              status: 'Internal server error',
+              error: 'Database connection failed!'
+            });
+          }
+
+          const userInfo = JSON.parse(msg.content.toString());
+          const [user, isCreated] = await model.user.findOrCreate({
+            where: {
+              email: userInfo.email
+            },
+            defaults: {
+              username: userInfo.given_name + generateRandomChars(4),
+              name: userInfo.given_name,
+              email: userInfo.email,
+              picture: userInfo.picture,
+              verified: true
+            }
+          });
+
+          if (isCreated && user.id) {
+            await model.userOauth.create({
+              userId: user.id,
+              oauthProvider: OauthProvider.Google,
+              oauthEmail: user.email
+            });
+          }
+
+          const [accessToken, newRefreshToken] = await jwtService.generateJwt(
+            user.username,
+            user.roleId,
+            user.id
+          );
+
+          const { clientId } = generateClientId(req.headers['user-agent']);
+          if (clientId) {
+            await model.refreshToken.create({
+              token: newRefreshToken,
+              userId: `${user.id}`,
+              loginWith: OauthProvider.Google,
+              clientId
+            });
+
+            res.status(200).json({
+              status: 'Success',
+              data: {
+                username: user.username,
+                name: user.name,
+                email: user.email,
+                desc: user.description,
+                role: user.roleId === 2 ? 'Author' : 'Admin',
+                img: user.picture,
+                access: accessToken,
+                refresh: newRefreshToken
+              }
+            });
+            consumerChan.ack(msg);
+            await closeChannel(timeout, consumerChan);
+          } else {
+            res
+              .status(400)
+              .json({ status: 'Bad request', error: 'User agent is invalid!' });
+            consumerChan.nack(msg);
+            await closeChannel(timeout, consumerChan);
+          }
+        } else {
+          res.status(500).json({
+            status: 'Internal Server Error',
+            error: 'Google login failed! No user info content.'
+          });
+          await closeChannel(timeout, consumerChan);
         }
-      );
-      if (isPublished) {
-        res.sendStatus(204);
-      } else {
-        res.status(500).json({
-          status: 'Internal Server Error',
-          error: 'Add post failed! Message queue connection error!'
-        });
-      }
+      });
     } catch (error) {
+      console.error(
+        'Google login failed >>',
+        `${error instanceof Error ? error.message : error}`
+      );
+
       res.status(500).json({
         status: 'Internal Server Error',
         error:
           error instanceof Error ? error.message : 'Unexpected error occurred!'
       });
-    }
-
-    const code = req.oauthCode;
-    if (!code) {
-      return res.status(400).json({
-        status: 'Error',
-        error: `Register failed: missing google oauth2 code!: ${code}`
-      });
-    }
-    try {
-      const tokenRes = await axios.post('https://oauth2.googleapis.com/token', {
-        code,
-        client_id: `${process.env.GOOGLE_OAUTH2_ID}`,
-        client_secret: `${process.env.GOOGLE_OAUTH2_SECRET}`,
-        redirect_uri: 'http://localhost:3000/api/auth/callback/google',
-        grant_type: 'authorization_code'
-      });
-
-      if (!tokenRes.data) throw new Error(tokenRes.statusText);
-
-      const oauthToken = tokenRes.data.access_token;
-      const userInfoRes = await axios.get(
-        'https://www.googleapis.com/oauth2/v3/userinfo',
-        {
-          headers: {
-            Authorization: `Bearer ${oauthToken}`
-          }
-        }
-      );
-
-      if (!userInfoRes.data) throw new Error(tokenRes.statusText);
-
-      const userInfo = userInfoRes.data;
-      console.log('google oauth user info >>>', userInfo);
-
-      const model = await MainModel;
-      if (!model) {
-        console.log('Database connection failed!');
-        return res.status(500).json({
-          status: 'Internal server error',
-          error: 'Database connection failed!'
-        });
-      }
-      const [user, isCreated] = await model.user.findOrCreate({
-        where: {
-          email: userInfo.email
-        },
-        defaults: {
-          username: userInfo.given_name + generateRandomChars(4),
-          name: userInfo.given_name,
-          email: userInfo.email,
-          picture: userInfo.picture,
-          verified: true
-        }
-      });
-
-      if (isCreated && user.id) {
-        await model.userOauth.create({
-          userId: user.id,
-          oauthProvider: OauthProvider.Google,
-          oauthEmail: user.email
-        });
-      }
-
-      const [accessToken, newRefreshToken] = await jwtService.generateJwt(
-        user.username,
-        user.roleId,
-        user.id
-      );
-
-      const { clientId } = generateClientId(req.headers['user-agent']);
-      if (!clientId) {
-        return res
-          .status(400)
-          .json({ status: 'Bad request', error: 'User agent is invalid!' });
-      }
-      await model.refreshToken.create({
-        token: newRefreshToken,
-        userId: `${user.id}`,
-        loginWith: OauthProvider.Google,
-        clientId
-      });
-
-      return res.status(200).json({
-        status: 'Success',
-        data: {
-          username: user.username,
-          name: user.name,
-          email: user.email,
-          desc: user.description,
-          role: user.roleId === 2 ? 'Author' : 'Admin',
-          img: user.picture,
-          access: accessToken,
-          refresh: newRefreshToken
-        }
-      });
-    } catch (error) {
-      console.error(
-        'Login Error >>>',
-        `${error instanceof Error ? error.message : error}`
-      );
-      return res.status(500).json({
-        status: 'Internal server error',
-        error: `${error instanceof Error ? error.message : error}`
-      });
+      await consumerChan.close();
     }
   },
   async github(req: Request, res: Response) {
+    const { publisherChan, consumerChan } = req;
     const code = req.oauthCode;
     if (!code) {
       return res.status(400).json({
         status: 'Error',
-        error: `Register failed: missing github oauth2 code!: ${code}`
+        error: 'Missing github oauth2 code!'
       });
     }
     try {
-      const tokenRes = await axios.post(
-        'https://github.com/login/oauth/access_token',
-        {
-          code,
-          client_id: `${process.env.GITHUB_OAUTH2_ID}`,
-          client_secret: `${process.env.GITHUB_OAUTH2_SECRET}`,
-          redirect_uri: 'http://localhost:3000/api/auth/callback/github'
-        },
-        { headers: { Accept: 'application/json' } }
-      );
-
-      if (!tokenRes.data) throw new Error(tokenRes.statusText);
-
-      const oauthToken = tokenRes.data.access_token;
-      const userInfoRes = await axios.get('https://api.github.com/user', {
-        headers: {
-          Authorization: `Bearer ${oauthToken}`
-        }
+      const { queue } = await consumerChan.assertQueue('', {
+        exclusive: true,
+        durable: false
       });
-      const userEmailsRes = await axios.get(
-        'https://api.github.com/user/emails',
-        {
-          headers: {
-            Authorization: `Bearer ${oauthToken}`
+      const correlationId = nanoid(9);
+      const message = Buffer.from(JSON.stringify({ code }));
+      publisherChan.publish(ExchangeName.Rpc, 'oauth.github.key', message, {
+        persistent: false,
+        replyTo: queue,
+        correlationId
+      });
+      const timeout = setTimeout(() => res.sendStatus(408), 5000);
+
+      await consumerChan.consume(queue, async (msg) => {
+        if (msg) {
+          if (msg.properties.correlationId !== correlationId) return;
+
+          const userData = JSON.parse(msg.content.toString());
+          console.log('Important!!! userData >>', userData);
+
+          const userInfo = userData.userInfo;
+          const userEmail = userData.userEmail.email;
+
+          const model = await initMainModel;
+          if (!model) {
+            console.log('Database connection failed!');
+            return res.status(500).json({
+              status: 'Internal server error',
+              error: 'Database connection failed!'
+            });
           }
-        }
-      );
+          const name = (userInfo.name as string).split(' ')[0];
+          const [user] = await model.user.findOrCreate({
+            where: {
+              email: userEmail
+            },
+            defaults: {
+              username: name + generateRandomChars(4),
+              name,
+              email: userEmail,
+              picture: userInfo.avatar_url,
+              verified: userEmail ? true : false
+            }
+          });
 
-      if (!userInfoRes.data || !userEmailsRes.data)
-        throw new Error(tokenRes.statusText);
-
-      const userInfo = userInfoRes.data;
-      const userEmail = userEmailsRes.data.find(
-        (email: any) => email.primary
-      )?.email;
-      console.log('github oauth user info >>>', userInfo);
-      console.log('github oauth user email >>>', userEmail);
-
-      const model = await MainModel;
-      if (!model) {
-        console.log('Database connection failed!');
-        return res.status(500).json({
-          status: 'Internal server error',
-          error: 'Database connection failed!'
-        });
-      }
-      const name = (userInfo.name as string).split(' ')[0];
-      const [user] = await model.user.findOrCreate({
-        where: {
-          email: userEmail
-        },
-        defaults: {
-          username: name + generateRandomChars(4),
-          name,
-          email: userEmail,
-          picture: userInfo.avatar_url,
-          verified: userEmail ? true : false
-        }
-      });
-
-      if (user.id) {
-        await model.userOauth.findOrCreate({
-          where: {
-            userId: user.id,
-            oauthProvider: OauthProvider.Github,
-            oauthEmail: user.email
+          if (user.id) {
+            await model.userOauth.findOrCreate({
+              where: {
+                userId: user.id,
+                oauthProvider: OauthProvider.Github,
+                oauthEmail: user.email
+              }
+            });
           }
-        });
-      }
 
-      const [accessToken, newRefreshToken] = await jwtService.generateJwt(
-        user.username,
-        user.roleId,
-        user.id
-      );
+          const [accessToken, newRefreshToken] = await jwtService.generateJwt(
+            user.username,
+            user.roleId,
+            user.id
+          );
 
-      const { clientId } = generateClientId(req.headers['user-agent']);
-      if (!clientId) {
-        return res
-          .status(400)
-          .json({ status: 'Bad request', error: 'User agent is invalid!' });
-      }
-      await model.refreshToken.create({
-        token: newRefreshToken,
-        userId: `${user.id}`,
-        loginWith: OauthProvider.Github,
-        clientId
-      });
+          const { clientId } = generateClientId(req.headers['user-agent']);
+          if (clientId) {
+            await model.refreshToken.create({
+              token: newRefreshToken,
+              userId: `${user.id}`,
+              loginWith: OauthProvider.Github,
+              clientId
+            });
 
-      return res.status(200).json({
-        status: 'Success',
-        data: {
-          username: user.username,
-          name: user.name,
-          email: user.email,
-          desc: user.description,
-          role: user.roleId === 2 ? 'Author' : 'Admin',
-          img: user.picture,
-          access: accessToken,
-          refresh: newRefreshToken
+            res.status(200).json({
+              status: 'Success',
+              data: {
+                username: user.username,
+                name: user.name,
+                email: user.email,
+                desc: user.description,
+                role: user.roleId === 2 ? 'Author' : 'Admin',
+                img: user.picture,
+                access: accessToken,
+                refresh: newRefreshToken
+              }
+            });
+            consumerChan.ack(msg);
+            await closeChannel(timeout, consumerChan);
+          } else {
+            res
+              .status(400)
+              .json({ status: 'Bad request', error: 'User agent is invalid!' });
+            consumerChan.nack(msg);
+            await closeChannel(timeout, consumerChan);
+          }
+        } else {
+          res.status(500).json({
+            status: 'Internal Server Error',
+            error: 'Github login failed! No user info content.'
+          });
+          await closeChannel(timeout, consumerChan);
         }
       });
     } catch (error) {
       console.error(
-        'Login Error >>>',
+        'Github login failed >>',
         `${error instanceof Error ? error.message : error}`
       );
-      return res.status(500).json({
+
+      res.status(500).json({
         status: 'Internal server error',
         error: `${error instanceof Error ? error.message : error}`
       });
+      await consumerChan.close();
     }
   }
 };
