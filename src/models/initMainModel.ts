@@ -27,8 +27,6 @@ export type MainModel = {
   sequelize: Sequelize;
 };
 
-let MainModel: MainModel | null = null;
-
 async function dbConnect(sequelize: Sequelize, retries = 0) {
   try {
     await sequelize.authenticate();
@@ -49,7 +47,11 @@ async function dbConnect(sequelize: Sequelize, retries = 0) {
   }
 }
 
-async function init() {
+let MainModel: MainModel | null = null;
+
+async function initMainModel() {
+  if (MainModel != null) return MainModel;
+
   const config = sequelizeConfig.development;
   const sequelize = new Sequelize({
     username: config.username,
@@ -86,10 +88,4 @@ async function init() {
   return MainModel;
 }
 
-async function mainModel() {
-  if (!MainModel) await init();
-
-  return MainModel;
-}
-
-export default mainModel();
+export default initMainModel();
