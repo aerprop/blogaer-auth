@@ -1,10 +1,10 @@
 import passkeyLoginController from '../../../../controllers/auth/login/passkeyLoginController';
 import webAuthnController from '../../../../controllers/auth/two-fa/webAuthnController';
-import initializeInMemDB from '../../../../middlewares/initializeInMemDB';
+import initInMemDB from '../../../../middlewares/initInMemDB';
 import { router } from '../../../router';
 
 const webAuthnPublicRoute = router()
-  .use(initializeInMemDB)
+  .use(initInMemDB)
   .post(
     `${process.env.BASE_ROUTE}/auth/two-fa/webauthn/login/generate`,
     webAuthnController.generateLoginOptions

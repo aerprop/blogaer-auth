@@ -1,9 +1,9 @@
 import authAppLoginController from '../../../../controllers/auth/login/authAppLoginController';
-import initializeInMemDB from '../../../../middlewares/initializeInMemDB';
+import initInMemDB from '../../../../middlewares/initInMemDB';
 import { router } from '../../../router';
 
 const authAppPublicRoute = router()
-  .use(initializeInMemDB)
+  .use(initInMemDB)
   .post(
     `${process.env.BASE_ROUTE}/auth/two-fa/auth-app/login`,
     authAppLoginController

@@ -1,9 +1,9 @@
 import webAuthnController from '../../../../controllers/auth/two-fa/webAuthnController';
-import initializeInMemDB from '../../../../middlewares/initializeInMemDB';
+import initInMemDB from '../../../../middlewares/initInMemDB';
 import { router } from '../../../router';
 
 const webAuthnRoute = router()
-  .use(initializeInMemDB)
+  .use(initInMemDB)
   .get(
     `${process.env.BASE_ROUTE}/auth/two-fa/webauthn/register`,
     webAuthnController.generateRegisterOptions
