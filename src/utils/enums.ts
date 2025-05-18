@@ -23,3 +23,21 @@ export enum OauthProvider {
   Github = 'Github',
   Microsoft = 'Microsoft'
 }
+
+export enum ChannelType {
+  Publisher = 'publisher',
+  Consumer = 'consumer'
+}
+
+export enum ExchangeName {
+  Direct = 'directExchange',
+  Rpc = 'rpcExchange',
+  Topic = 'topicExchange',
+  Fanout = 'fanoutExchange'
+}
+
+export enum ExchangeType {
+  Direct = 'direct',
+  Topic = 'topic',
+  Fanout = 'fanout'
+}
