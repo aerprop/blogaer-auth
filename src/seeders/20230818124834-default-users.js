@@ -1,7 +1,7 @@
 'use strict';
 import bcryptjs from 'bcryptjs';
 import { config } from 'dotenv';
-import mainModel from '../models/MainModel';
+import initMainModel from '../models/initMainModel';
 
 config();
 
@@ -28,7 +28,7 @@ export default {
     ];
 
     const createUserData = async (user) => {
-      const model = await mainModel;
+      const model = await initMainModel;
       if (!model) {
         console.log('Database connection failed!');
         return;

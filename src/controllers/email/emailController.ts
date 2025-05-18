@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import emailService from '../../services/email/emailService';
 import { EmailSubject } from '../../utils/enums';
 import { generateClientId, generateOtp } from '../../utils/helper';
-import MainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 
 const emailController = {
   async sendAddPasswordLink(req: Request, res: Response) {
@@ -73,7 +73,7 @@ const emailController = {
   },
   async sendUpdateEmailOtp(req: Request, res: Response) {
     const { email, request, limit } = req.body;
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('emailController.ts', 'Database connection failed!');
       throw new CustomError(500, {
@@ -117,7 +117,7 @@ const emailController = {
   async getUpdateEmailOtpTime(req: Request, res: Response) {
     const { request, limit } = req.query;
 
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('emailController.ts', 'Database connection failed!');
       throw new CustomError(500, {
@@ -174,7 +174,7 @@ const emailController = {
       if (error instanceof CustomError)
         return res.status(error.status).json(error.message);
     }
-  },
+  }
 };
 
 export default emailController;

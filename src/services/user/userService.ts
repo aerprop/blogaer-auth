@@ -1,9 +1,9 @@
-import MainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 import { AnyObj } from '../../types/common';
 
 const userService = {
   async getOauthAssociations(userId: string) {
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return {

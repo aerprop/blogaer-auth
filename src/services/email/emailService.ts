@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { CommonStatus, EmailSubject } from '../../utils/enums';
-import MainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 
 const emailService = {
   transporter: nodemailer.createTransport({
@@ -34,7 +34,7 @@ const emailService = {
         error: 'Invalid request origin!'
       });
     }
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('emailService.ts', 'Database connection failed!');
       throw new CustomError(500, {

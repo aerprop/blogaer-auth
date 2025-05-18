@@ -1,9 +1,10 @@
 import { UAParser } from 'ua-parser-js';
-import mainModel from '../models/MainModel';
+import initMainModel from '../models/initMainModel';
 import { UserAgent } from '../types/common';
+import { Channel } from 'amqplib';
 
 export async function getAllUserImgsAndUsernames() {
-  const model = await mainModel;
+  const model = await initMainModel;
   if (!model) return;
   return await model.user.findAll({
     attributes: ['id', 'username', 'picture']
@@ -11,7 +12,7 @@ export async function getAllUserImgsAndUsernames() {
 }
 
 export async function getUserById(userId: string) {
-  const model = await mainModel;
+  const model = await initMainModel;
   if (!model) return;
   return model.user.findByPk(userId, {
     attributes: ['username', 'picture']
@@ -31,7 +32,7 @@ export function generateRandomChars(length: number) {
 }
 
 export async function getMainModel() {
-  return await mainModel;
+  return await initMainModel;
 }
 
 export function generateClientId(userAgent: string = '') {
@@ -76,4 +77,13 @@ export function generateOtp() {
     result += digit;
   }
   return result;
+}
+
+export async function closeChannel(timeout: NodeJS.Timeout, channel: Channel) {
+  try {
+    clearTimeout(timeout);
+    await channel.close();
+  } catch (error) {
+    console.warn('At handleGetPostById >>', 'Channel already closed!');
+  }
 }

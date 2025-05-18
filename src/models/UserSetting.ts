@@ -1,5 +1,5 @@
 'use strict';
-import type { MainModel } from './MainModel';
+import type { MainModel } from './initMainModel';
 import { TwoFAMethod } from '../utils/enums';
 import { DataTypes, Model, Sequelize } from 'sequelize';
 

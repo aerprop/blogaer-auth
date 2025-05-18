@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import MainModel from '../models/MainModel';
+import initMainModel from '../models/initMainModel';
 import SavedAccount from '../models/SavedAccount';
 import User from '../models/User';
 import { col, fn, where } from 'sequelize';
@@ -8,7 +8,7 @@ import { generateClientId } from '../utils/helper';
 
 const savedAccountsController = {
   async getSavedAccounts(req: Request, res: Response) {
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
@@ -52,7 +52,7 @@ const savedAccountsController = {
   async deleteSavedAccount(req: Request, res: Response) {
     const { username } = req.params;
 
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({

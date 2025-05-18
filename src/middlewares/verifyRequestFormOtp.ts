@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import MainModel from '../models/MainModel';
+import initMainModel from '../models/initMainModel';
 import { generateClientId } from '../utils/helper';
 
 export default async function verifyRequestFormOtp(
@@ -10,7 +10,7 @@ export default async function verifyRequestFormOtp(
   const { otp, request, limit } = req.body;
   if (otp === 'undefined') return res.sendStatus(498);
 
-  const model = await MainModel;
+  const model = await initMainModel;
   if (!model) {
     console.log('securityController.ts >>> Database connection failed!');
     return res.status(500).json({

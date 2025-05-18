@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import mainModel from '../../../models/MainModel';
+import initMainModel from '../../../models/initMainModel';
 import { Op } from 'sequelize';
 import { TwoFAMethod } from '../../../utils/enums';
 import User from '../../../models/User';
@@ -10,7 +10,7 @@ import { authenticator } from 'otplib';
 
 const twoFAController = {
   async getAuthAppToken(req: Request, res: Response) {
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
@@ -48,7 +48,7 @@ const twoFAController = {
   async getTwoFAStatus(req: Request, res: Response) {
     try {
       const { emailOrUsername } = req.params;
-      const model = await mainModel;
+      const model = await initMainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({
@@ -106,7 +106,7 @@ const twoFAController = {
   },
   async deleteUserPasskey(req: Request, res: Response) {
     const { userId } = req;
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
@@ -142,7 +142,7 @@ const twoFAController = {
   },
   async deleteUserSecret(req: Request, res: Response) {
     const { userId } = req;
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({

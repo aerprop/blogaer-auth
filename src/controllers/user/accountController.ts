@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import MainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 import { col, fn, Op, where } from 'sequelize';
 import userRequestService from '../../services/user/userRequestService';
 import { UserSocial } from '../../types/common';
@@ -8,7 +8,7 @@ import { CommonStatus } from '../../utils/enums';
 const accountController = {
   async patchAccount(req: Request, res: Response) {
     const { username, email, name, description, picture } = req.body;
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
@@ -74,7 +74,7 @@ const accountController = {
   },
   async getAccount(req: Request, res: Response) {
     const { userId } = req;
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('securityController.ts >>> Database connection failed!');
       return res.status(500).json({

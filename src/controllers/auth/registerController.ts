@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { LoginReqBody } from '../../types/common';
@@ -15,7 +15,7 @@ export default async function registerController(req: Request, res: Response) {
   const hashPassword = await bcryptjs.hash(password, 10);
 
   try {
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({

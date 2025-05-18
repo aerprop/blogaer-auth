@@ -1,6 +1,6 @@
 'use strict';
 import { CommonStatus } from '../utils/enums';
-import type { MainModel } from './MainModel';
+import type { MainModel } from './initMainModel';
 import { DataTypes, Model, Sequelize } from 'sequelize';
 
 interface UserRequestModel {

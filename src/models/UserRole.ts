@@ -1,6 +1,6 @@
 'use strict';
 import { DataTypes, Model, Sequelize } from 'sequelize';
-import type { MainModel } from './MainModel';
+import type { MainModel } from './initMainModel';
 
 interface UserRoleModel {
   id: number;

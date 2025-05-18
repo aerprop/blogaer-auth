@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 
 const settingsController = {
   async patchSettings(req: Request, res: Response) {
     const { twoFaEnabled, twoFaMethod, preference } = req.body;
 
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({

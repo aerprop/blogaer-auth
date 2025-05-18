@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { MainModel } from '../../models/MainModel';
+import { MainModel } from '../../models/initMainModel';
 import { CommonStatus, EmailSubject } from '../../utils/enums';
 
 const userRequestService = {

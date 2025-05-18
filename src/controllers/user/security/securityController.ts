@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import userService from '../../../services/user/userService';
 import User from '../../../models/User';
-import MainModel from '../../../models/MainModel';
+import initMainModel from '../../../models/initMainModel';
 import { CommonStatus, EmailSubject } from '../../../utils/enums';
 import userRequestService from '../../../services/user/userRequestService';
 import bcryptjs from 'bcryptjs';
@@ -19,7 +19,7 @@ type UserJoins =
 const securityController = {
   async getSecurity(req: Request, res: Response) {
     const { userId } = req;
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('securityController.ts >>> Database connection failed!');
       return res.status(500).json({
@@ -95,7 +95,7 @@ const securityController = {
   async addOrResetPassword(req: Request, res: Response) {
     const { password, subject, limit } = req.body;
     const { userId } = req;
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({

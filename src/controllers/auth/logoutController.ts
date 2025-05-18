@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 
 const logoutController = async (req: Request, res: Response) => {
   const refreshToken = req.cookies[`${process.env.REFRESH_TOKEN}`];
   if (!refreshToken) return res.sendStatus(204);
 
-  const model = await mainModel;
+  const model = await initMainModel;
   if (!model) {
     console.log('Database connection failed!');
     return res.status(500).json({
@@ -16,7 +16,7 @@ const logoutController = async (req: Request, res: Response) => {
 
   try {
     await model.refreshToken.destroy({
-      where: { token: refreshToken },
+      where: { token: refreshToken }
     });
 
     return res.sendStatus(204);

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import qrcode from 'qrcode';
-import mainModel from '../../../models/MainModel';
+import initMainModel from '../../../models/initMainModel';
 import { authenticator } from 'otplib';
 
 const authAppController = {
@@ -15,7 +15,7 @@ const authAppController = {
     }
     try {
       const { userId } = req;
-      const model = await mainModel;
+      const model = await initMainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({
@@ -93,7 +93,7 @@ const authAppController = {
           .json({ status: 'Bad request', message: 'Token does not match.' });
       }
 
-      const model = await mainModel;
+      const model = await initMainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({

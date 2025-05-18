@@ -1,4 +1,4 @@
-import mainModel from '../../../models/MainModel';
+import initMainModel from '../../../models/initMainModel';
 import bcryptjs from 'bcryptjs';
 import { Request, Response } from 'express';
 import { col, fn, Op, where } from 'sequelize';
@@ -8,7 +8,7 @@ import { generateClientId } from '../../../utils/helper';
 export default async function loginController(req: Request, res: Response) {
   const { emailOrUsername, password } = req.body;
 
-  const model = await mainModel;
+  const model = await initMainModel;
   if (!model) {
     console.log('Database connection failed!');
     return res.status(500).json({

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import MainModel from '../../../models/MainModel';
+import initMainModel from '../../../models/initMainModel';
 import {
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
@@ -33,7 +33,7 @@ const webAuthnController = {
     }
     try {
       const { userId, username } = req;
-      const model = await MainModel;
+      const model = await initMainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({
@@ -138,7 +138,7 @@ const webAuthnController = {
         const { credential, credentialDeviceType, credentialBackedUp } =
           registrationInfo;
 
-        const model = await MainModel;
+        const model = await initMainModel;
         if (!model) {
           console.log('Database connection failed!');
           return res.status(500).json({
@@ -223,7 +223,7 @@ const webAuthnController = {
     }
     try {
       const { emailOrUsername } = req.body;
-      const model = await MainModel;
+      const model = await initMainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({
@@ -336,7 +336,7 @@ const webAuthnController = {
         });
       }
 
-      const model = await MainModel;
+      const model = await initMainModel;
       if (!model) {
         console.log('Database connection failed!');
         return res.status(500).json({

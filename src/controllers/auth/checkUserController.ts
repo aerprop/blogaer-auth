@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import MainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 import RefreshToken from '../../models/RefreshToken';
 
 const checkUserController = {
@@ -11,7 +11,7 @@ const checkUserController = {
         message: 'No login cookie provided.'
       });
     }
-    const model = await MainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({

@@ -1,6 +1,6 @@
 'use strict';
 import { getMainModel } from '../utils/helper';
-import type { MainModel } from './MainModel';
+import type { MainModel } from './initMainModel';
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import User from './User';
 import UserSetting from './UserSetting';

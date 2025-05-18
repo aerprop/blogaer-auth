@@ -4,7 +4,7 @@ import {
   Base64URLString,
   CredentialDeviceType
 } from '@simplewebauthn/server/script/deps';
-import type { MainModel } from './MainModel';
+import type { MainModel } from './initMainModel';
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import { getMainModel } from '../utils/helper';
 import User from './User';

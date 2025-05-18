@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import mainModel from '../../models/MainModel';
+import initMainModel from '../../models/initMainModel';
 import { AnyObj } from '../../types/common';
 
 const socialsController = {
@@ -7,7 +7,7 @@ const socialsController = {
     const { userId } = req;
     const { social, link } = req.body;
 
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
@@ -45,7 +45,7 @@ const socialsController = {
   },
   async getSocials(req: Request, res: Response) {
     const { userId } = req;
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({

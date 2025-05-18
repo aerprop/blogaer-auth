@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import mainModel from '../../../models/MainModel';
+import initMainModel from '../../../models/initMainModel';
 import { col, fn, Op, where } from 'sequelize';
 import User from '../../../models/User';
 import UserTotpSecret from '../../../models/UserTotpSecret';
@@ -13,7 +13,7 @@ export default async function authAppLoginController(
 ) {
   try {
     const { emailOrUsername, token } = req.body;
-    const model = await mainModel;
+    const model = await initMainModel;
     if (!model) {
       console.log('Database connection failed!');
       return res.status(500).json({
