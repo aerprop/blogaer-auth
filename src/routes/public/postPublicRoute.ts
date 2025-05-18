@@ -1,9 +1,9 @@
 import postController from '../../controllers/postController';
-import postRpcChan from '../../middlewares/messaging/postRpcChan';
+import initPubConChan from '../../middlewares/messaging/initPubConChan';
 import { routerInit } from '../router';
 
 const postPublicRoute = routerInit
-  .use(postRpcChan)
+  .use(initPubConChan)
   .get(`${process.env.BASE_ROUTE}/post/public`, postController.getPostsByPage)
   .get(
     `${process.env.BASE_ROUTE}/post/public/:slug`,

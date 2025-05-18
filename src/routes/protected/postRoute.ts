@@ -1,29 +1,29 @@
 import verifyAuthor from '../../middlewares/verifyAuthor';
 import postController from '../../controllers/postController';
-import postTopicChan from '../../middlewares/messaging/postTopicChan';
-import postRpcChan from '../../middlewares/messaging/postRpcChan';
+import initPublisherChan from '../../middlewares/messaging/initPublisherChan';
+import initPubConChan from '../../middlewares/messaging/initPubConChan';
 import { router } from '../router';
 
 const postRoute = router()
   .use(verifyAuthor)
   .get(`${process.env.BASE_ROUTE}/post/user`, [
-    postRpcChan,
+    initPubConChan,
     postController.getPostsByUserId
   ])
   .post(`${process.env.BASE_ROUTE}/post`, [
-    postTopicChan,
+    initPublisherChan,
     postController.addPost
   ])
   .patch(`${process.env.BASE_ROUTE}/post/:slug`, [
-    postTopicChan,
+    initPublisherChan,
     postController.patchPost
   ])
   .put(`${process.env.BASE_ROUTE}/post/:slug`, [
-    postTopicChan,
+    initPublisherChan,
     postController.updatePost
   ])
   .delete(`${process.env.BASE_ROUTE}/post/:slug`, [
-    postTopicChan,
+    initPublisherChan,
     postController.deletePost
   ]);
 

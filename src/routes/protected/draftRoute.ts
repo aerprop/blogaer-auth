@@ -1,33 +1,33 @@
 import verifyAuthor from '../../middlewares/verifyAuthor';
-import draftRpcChan from '../../middlewares/messaging/draftRpcChan';
-import draftTopicChan from '../../middlewares/messaging/draftTopicChan';
 import draftController from '../../controllers/draftController';
 import { router } from '../router';
+import initPubConChan from '../../middlewares/messaging/initPubConChan';
+import initPublisherChan from '../../middlewares/messaging/initPublisherChan';
 
 const draftRoute = router()
   .use(verifyAuthor)
   .get(`${process.env.BASE_ROUTE}/draft/user`, [
-    draftRpcChan,
+    initPubConChan,
     draftController.getDraftsByUserId
   ])
   .get(`${process.env.BASE_ROUTE}/draft/:id`, [
-    draftRpcChan,
+    initPubConChan,
     draftController.getDraftById
   ])
   .post(`${process.env.BASE_ROUTE}/draft`, [
-    draftTopicChan,
+    initPublisherChan,
     draftController.addDraft
   ])
   .patch(`${process.env.BASE_ROUTE}/draft/:id`, [
-    draftTopicChan,
+    initPublisherChan,
     draftController.patchDraft
   ])
   .put(`${process.env.BASE_ROUTE}/draft/:id`, [
-    draftTopicChan,
+    initPublisherChan,
     draftController.updateDraft
   ])
   .delete(`${process.env.BASE_ROUTE}/draft/:id`, [
-    draftTopicChan,
+    initPublisherChan,
     draftController.deleteDraft
   ]);
 

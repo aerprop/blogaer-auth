@@ -45,6 +45,6 @@ export type VerifyToken = { userId: string; username: string; role: string };
 
 export type VerifyOauthCode = { oauthCode: string };
 
-export type RabbitConn = { rabbitConn: ChannelModel; rabbitChan: Channel };
+export type RabbitConn = { publisherChan: Channel, consumerChan: Channel };
 
 export type AnyObj = { [key?: string]: any };
