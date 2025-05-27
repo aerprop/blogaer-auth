@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
-import createPublisherChan from '../../messaging/channels/createPublisherChan';
+import createPubTopicChan from '../../messaging/channels/createPubTopicChan';
 
-export default async function initPublisherChan(
+export default async function initPubTopicChan(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  const channel = await createPublisherChan;
+  const channel = await createPubTopicChan();
   if (channel) {
     req.publisherChan = channel;
     next();
