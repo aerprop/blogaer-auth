@@ -1,25 +1,52 @@
 import amqp from 'amqplib';
 
-let rabbitMQConn: amqp.ChannelModel | null = null;
+let rabbitMQConnPromise: Promise<amqp.ChannelModel> | null = null;
 
 async function connectRabbitMQ(retries = 0) {
-  if (rabbitMQConn != null) return rabbitMQConn;
-  try {
-    rabbitMQConn = await amqp.connect(`${process.env.RABBITMQ_URL}`);
-    console.log('Connected to rabbitmq ✔✔✔');
-    return rabbitMQConn;
-  } catch (error) {
-    console.log(
-      'Failed to connect to RabbitMQ:',
-      retries < 5 ? 'Retrying in 60 seconds.' : 'Max retries have been reached.'
-    );
-    if (retries >= 5) {
-      throw new Error('Failed to connect to RabbitMQ after multiple attempts');
-    }
-    await new Promise((resolve) => setTimeout(resolve, 60000));
+  if (rabbitMQConnPromise != null) return rabbitMQConnPromise;
 
-    return connectRabbitMQ(retries + 1);
-  }
+  rabbitMQConnPromise = (async () => {
+    try {
+      const connection = await amqp.connect(`${process.env.RABBITMQ_URL}`);
+      connection.on('close', () => {
+        console.warn(
+          'At createConsumerChan.ts >> ',
+          'Consumer channel closed. Will re-initialize on next access.'
+        );
+        rabbitMQConnPromise = null;
+      });
+      connection.on('error', (err) => {
+        console.error(
+          'At createConsumerChan.ts >> ',
+          'Consumer rpc channel error:',
+          err
+        );
+        rabbitMQConnPromise = null;
+      });
+      console.log('Connected to rabbitmq ✔✔✔');
+
+      return connection;
+    } catch (error) {
+      console.error(
+        'Failed to connect to RabbitMQ:',
+        retries < 5
+          ? 'Retrying in 60 seconds!'
+          : 'Max retries have been reached! ✘✘✘'
+      );
+      if (retries >= 5) {
+        rabbitMQConnPromise = null;
+        throw new Error(
+          'Failed to connect to RabbitMQ after multiple attempts!'
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 60000));
+      rabbitMQConnPromise = null;
+      connectRabbitMQ(retries + 1);
+      throw error;
+    }
+  })();
+
+  return rabbitMQConnPromise;
 }
 
-export default connectRabbitMQ();
+export default connectRabbitMQ;
