@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { Post } from '../../../types/dto/Post';
 import { closeChannel, getUserById } from '../../../utils/helper';
 import { ExchangeName } from '../../../utils/enums';
-// import { nanoid } from 'nanoid';
+import { nanoid } from 'nanoid';
 
 export default async function handleGetPostById(
   res: Response,
@@ -16,11 +16,11 @@ export default async function handleGetPostById(
       exclusive: true,
       durable: false
     });
-    // const correlationId = nanoid(9);
+    const correlationId = nanoid(9);
     publisherChan.publish(ExchangeName.Rpc, 'post.get.by.id.key', message, {
       persistent: false,
-      replyTo: queue
-      // correlationId
+      replyTo: queue,
+      correlationId
     });
     const timeout = setTimeout(() => res.sendStatus(408), 5000);
 
@@ -28,7 +28,7 @@ export default async function handleGetPostById(
       queue,
       async (msg) => {
         if (msg) {
-          // if (msg.properties.correlationId !== correlationId) return;
+          if (msg.properties.correlationId !== correlationId) return;
 
           const post: Post = JSON.parse(msg.content.toString());
           if (!post.userId) return;

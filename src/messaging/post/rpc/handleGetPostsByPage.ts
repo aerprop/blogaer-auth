@@ -6,7 +6,7 @@ import {
 } from '../../../utils/helper';
 import { PagedPost } from '../../../types/dto/PagedPost';
 import { ExchangeName } from '../../../utils/enums';
-// import { nanoid } from 'nanoid';
+import { nanoid } from 'nanoid';
 
 export default async function handleGetPostsByPage(
   res: Response,
@@ -23,11 +23,11 @@ export default async function handleGetPostsByPage(
       durable: false
     });
 
-    // const correlationId = nanoid(9);
+    const correlationId = nanoid(9);
     publisherChan.publish('postRpcExchange', 'post.get.by.page.key', message, {
       persistent: false,
-      replyTo: queue
-      // correlationId
+      replyTo: queue,
+      correlationId
     });
 
     const timeout = setTimeout(() => res.sendStatus(408), 5000);
@@ -35,7 +35,7 @@ export default async function handleGetPostsByPage(
       queue,
       async (msg) => {
         if (msg) {
-          // if (msg.properties.correlationId !== correlationId) return;
+          if (msg.properties.correlationId !== correlationId) return;
 
           const data: PagedPost = JSON.parse(msg.content.toString());
           const posts = data.posts.map((post) => {
@@ -57,7 +57,7 @@ export default async function handleGetPostsByPage(
             status: 'Success',
             data
           });
-          // consumerChan.ack(msg);
+          consumerChan.ack(msg);
           await closeChannel(timeout, consumerChan);
         } else {
           console.log('At handleGetPostsByPage.ts >>', 'Message is empty!');

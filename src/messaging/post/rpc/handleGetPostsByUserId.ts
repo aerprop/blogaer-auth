@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { PagedPost } from '../../../types/dto/PagedPost';
 import { ExchangeName } from '../../../utils/enums';
 import { closeChannel } from '../../../utils/helper';
-// import { nanoid } from 'nanoid';
+import { nanoid } from 'nanoid';
 
 export default async function handleGetPostsByUserId(
   res: Response,
@@ -17,15 +17,15 @@ export default async function handleGetPostsByUserId(
       durable: false
     });
 
-    // const correlationId = nanoid(9);
+    const correlationId = nanoid(9);
     publisherChan.publish(
       ExchangeName.Rpc,
       'post.get.by.user.id.key',
       message,
       {
         persistent: false,
-        replyTo: queue
-        // correlationId
+        replyTo: queue,
+        correlationId
       }
     );
     const timeout = setTimeout(() => res.sendStatus(408), 5000);
@@ -34,7 +34,7 @@ export default async function handleGetPostsByUserId(
       queue,
       async (msg) => {
         if (msg) {
-          // if (msg.properties.correlationId !== correlationId) return;
+          if (msg.properties.correlationId !== correlationId) return;
 
           const data: PagedPost = JSON.parse(msg.content.toString());
           const posts = data.posts.map((post) => {
