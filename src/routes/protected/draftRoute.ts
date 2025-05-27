@@ -2,7 +2,7 @@ import verifyAuthor from '../../middlewares/verifyAuthor';
 import draftController from '../../controllers/draftController';
 import { router } from '../router';
 import initPubConChan from '../../middlewares/messaging/initPubConChan';
-import initPublisherChan from '../../middlewares/messaging/initPublisherChan';
+import initPubTopicChan from '../../middlewares/messaging/initPubTopicChan';
 
 const draftRoute = router()
   .use(verifyAuthor)
@@ -15,19 +15,19 @@ const draftRoute = router()
     draftController.getDraftById
   ])
   .post(`${process.env.BASE_ROUTE}/draft`, [
-    initPublisherChan,
+    initPubTopicChan,
     draftController.addDraft
   ])
   .patch(`${process.env.BASE_ROUTE}/draft/:id`, [
-    initPublisherChan,
+    initPubTopicChan,
     draftController.patchDraft
   ])
   .put(`${process.env.BASE_ROUTE}/draft/:id`, [
-    initPublisherChan,
+    initPubTopicChan,
     draftController.updateDraft
   ])
   .delete(`${process.env.BASE_ROUTE}/draft/:id`, [
-    initPublisherChan,
+    initPubTopicChan,
     draftController.deleteDraft
   ]);
 
