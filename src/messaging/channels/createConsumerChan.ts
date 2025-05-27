@@ -2,31 +2,48 @@ import amqp from 'amqplib';
 import connectRabbitMQ from '../connection/connectRabbitMQ';
 import { ExchangeName, ExchangeType } from '../../utils/enums';
 
-let consumerChan: amqp.Channel | null = null;
+let pubChanRpcPromise: Promise<amqp.Channel> | null = null;
 
-async function createConsumerChan() {
-  if (consumerChan != null) return consumerChan;
-  try {
-    const connection = await connectRabbitMQ;
-    consumerChan = await connection.createChannel();
-    await consumerChan.assertExchange(ExchangeName.Rpc, ExchangeType.Direct, {
-      durable: false,
-      autoDelete: true
-    });
-    await consumerChan.assertExchange(ExchangeName.Topic, ExchangeType.Topic, {
-      durable: false,
-      autoDelete: true
-    });
+async function createConsumerChan(): Promise<amqp.Channel> {
+  if (pubChanRpcPromise != null) return pubChanRpcPromise;
 
-    return consumerChan;
-  } catch (error) {
-    console.error(
-      'At consumerChannel.ts >> ',
-      error instanceof Error ? error.message : 'Creating channel failed'
-    );
+  pubChanRpcPromise = (async () => {
+    try {
+      const connection = await connectRabbitMQ();
+      const channel = await connection.createChannel();
+      await channel.assertExchange(ExchangeName.Rpc, ExchangeType.Direct, {
+        durable: false,
+        autoDelete: true
+      });
+      channel.on('close', () => {
+        console.warn(
+          'At createConsumerChan.ts >> ',
+          'Consumer channel closed. Will re-initialize on next access.'
+        );
+        pubChanRpcPromise = null;
+      });
+      channel.on('error', (err) => {
+        console.error(
+          'At createConsumerChan.ts >> ',
+          'Consumer rpc channel error:',
+          err
+        );
+        pubChanRpcPromise = null;
+      });
 
-    return null;
-  }
+      return channel;
+    } catch (error) {
+      console.error(
+        'At createConsumerChan.ts >> ',
+        error instanceof Error ? error.message : 'Creating channel failed!'
+      );
+      pubChanRpcPromise = null;
+
+      throw error;
+    }
+  })();
+
+  return pubChanRpcPromise;
 }
 
-export default createConsumerChan();
+export default createConsumerChan;
