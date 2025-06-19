@@ -4,6 +4,7 @@ import { PagedPost } from '../../../types/dto/PagedPost';
 import { ExchangeName } from '../../../utils/enums';
 import { nanoid } from 'nanoid';
 import { closeChannel } from '../../../utils/helper';
+import { PagedDraft } from '../../../types/dto/PagedDraft';
 
 export default async function handleGetDraftsByUserId(
   res: Response,
@@ -27,24 +28,32 @@ export default async function handleGetDraftsByUserId(
         correlationId
       }
     );
-    const timeout = setTimeout(() => res.sendStatus(408), 5000);
+    const timeout = setTimeout(() => {
+      return res.status(408).json({
+        status: 'Request timeout',
+        error: 'Server took too long to respond!'
+      });
+    }, 5000);
 
     await consumerChan.consume(
       queue,
       async (msg) => {
         if (msg) {
-          const data: PagedPost = JSON.parse(msg.content.toString());
-          const drafts = data.posts.map((draft) => {
+          if (msg.properties.correlationId !== correlationId) return;
+
+          const data: PagedDraft = JSON.parse(msg.content.toString());
+          if (!data) return res.sendStatus(204);
+
+          const drafts = data.drafts.map((draft) => {
             delete draft?.userId;
             return draft;
           });
-          data.posts = drafts;
+          data.drafts = drafts;
 
           res.status(200).json({
             status: 'Success',
             data
           });
-          // consumerChan.ack(msg);
           await closeChannel(timeout, consumerChan);
         } else {
           console.log('At handleGetDraftsByUserId.ts >>', 'Message is empty!');

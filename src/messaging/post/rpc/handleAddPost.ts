@@ -1,11 +1,10 @@
 import { Channel } from 'amqplib';
 import { Response } from 'express';
-import { PagedPost } from '../../../types/dto/PagedPost';
 import { ExchangeName } from '../../../utils/enums';
-import { closeChannel } from '../../../utils/helper';
 import { nanoid } from 'nanoid';
+import { closeChannel } from '../../../utils/helper';
 
-export default async function handleGetPostsByUserId(
+export default async function handleAddPost(
   res: Response,
   publisherChan: Channel,
   consumerChan: Channel,
@@ -18,16 +17,11 @@ export default async function handleGetPostsByUserId(
     });
 
     const correlationId = nanoid(9);
-    publisherChan.publish(
-      ExchangeName.Rpc,
-      'post.get.by.user.id.key',
-      message,
-      {
-        persistent: false,
-        replyTo: queue,
-        correlationId
-      }
-    );
+    publisherChan.publish(ExchangeName.Rpc, 'post.add.key', message, {
+      persistent: false,
+      replyTo: queue,
+      correlationId
+    });
     const timeout = setTimeout(() => {
       return res.status(408).json({
         status: 'Request timeout',
@@ -41,20 +35,21 @@ export default async function handleGetPostsByUserId(
         if (msg) {
           if (msg.properties.correlationId !== correlationId) return;
 
-          const data: PagedPost = JSON.parse(msg.content.toString());
-          const posts = data.posts.map((post) => {
-            delete post?.userId;
-            return post;
-          });
-          data.posts = posts;
+          const id: string = JSON.parse(msg.content.toString());
+          if (!id) {
+            return res.status(404).json({
+              status: 'Not Found',
+              error: 'draft not found!'
+            });
+          }
 
           res.status(200).json({
             status: 'Success',
-            data
+            data: { id }
           });
           await closeChannel(timeout, consumerChan);
         } else {
-          console.log('At handleGetPostsByUserId.ts >>', 'Message is empty!');
+          console.log('At handleAddDraft.ts >>', 'Message is empty!');
 
           res.sendStatus(204);
           await closeChannel(timeout, consumerChan);
@@ -64,7 +59,7 @@ export default async function handleGetPostsByUserId(
     );
   } catch (error) {
     console.error(
-      'At handleGetPostsByUserId.ts >>',
+      'At handleAddDraft.ts >>',
       error instanceof Error ? error.message : 'Unexpected error occurred!'
     );
 

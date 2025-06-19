@@ -15,16 +15,12 @@ const draftRoute = router()
     draftController.getDraftById
   ])
   .post(`${process.env.BASE_ROUTE}/draft`, [
-    initPubTopicChan,
+    initPubConChan,
     draftController.addDraft
   ])
-  .patch(`${process.env.BASE_ROUTE}/draft/:id`, [
+  .patch(`${process.env.BASE_ROUTE}/draft/`, [
     initPubTopicChan,
     draftController.patchDraft
-  ])
-  .put(`${process.env.BASE_ROUTE}/draft/:id`, [
-    initPubTopicChan,
-    draftController.updateDraft
   ])
   .delete(`${process.env.BASE_ROUTE}/draft/:id`, [
     initPubTopicChan,

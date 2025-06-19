@@ -1,5 +1,6 @@
 import { Channel } from 'amqplib';
 import { Response } from 'express';
+import { ExchangeName } from '../../../utils/enums';
 
 export default function handlePatchDraft(
   res: Response,
@@ -7,7 +8,7 @@ export default function handlePatchDraft(
   message: Buffer
 ) {
   const isPublished = channel.publish(
-    'draftTopicExchange',
+    ExchangeName.Topic,
     'draft.patch.key',
     message,
     {
@@ -17,7 +18,7 @@ export default function handlePatchDraft(
   if (isPublished) {
     res.status(200).json({ status: 'Success', message: 'Saving to draft' });
   } else {
-    console.log('###handlePatchPost.ts Add post failed');
+    console.warn('At handlePatchDraft.ts >> ', 'Patch draft failed!');
     res.status(500).json({
       status: 'Internal Server Error',
       error: 'Add post failed! Message queue connection error!'

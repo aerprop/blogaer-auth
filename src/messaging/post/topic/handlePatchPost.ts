@@ -1,5 +1,6 @@
 import { Channel } from 'amqplib';
 import { Response } from 'express';
+import { ExchangeName } from '../../../utils/enums';
 
 export default function handlePatchPost(
   res: Response,
@@ -7,7 +8,7 @@ export default function handlePatchPost(
   message: Buffer
 ) {
   const isPublished = channel.publish(
-    'postTopicExchange',
+    ExchangeName.Topic,
     'post.patch.key',
     message,
     {
@@ -17,7 +18,7 @@ export default function handlePatchPost(
   if (isPublished) {
     res.status(200).json({ status: 'Success', message: 'Saving post.' });
   } else {
-    console.log('###handlePatchPost.ts Add post failed');
+    console.warn('At handlePatchPost.ts >>', 'Patch post failed!');
     res.status(500).json({
       status: 'Internal Server Error',
       error: 'Add post failed! Message queue connection error!'

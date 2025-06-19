@@ -6,12 +6,8 @@ const postPublicRoute = routerInit
   .use(initPubConChan)
   .get(`${process.env.BASE_ROUTE}/post/public`, postController.getPostsByPage)
   .get(
-    `${process.env.BASE_ROUTE}/post/public/:slug`,
+    `${process.env.BASE_ROUTE}/post/public/:id`,
     postController.getPostById
-  )
-  .get(
-    `${process.env.BASE_ROUTE}/post/public/explore`,
-    postController.explorePosts
   );
 
 export default postPublicRoute;

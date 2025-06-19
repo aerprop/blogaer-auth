@@ -19,8 +19,8 @@ import oauth2Route from './public/auth/two-fa/oauth2Route';
 const routes = {
   public: [
     savedAccountsRoute,
-    authPublicRoute,
     oauth2Route,
+    authPublicRoute,
     authAppPublicRoute,
     webAuthnPublicRoute,
     postPublicRoute

@@ -14,15 +14,11 @@ const postRoute = router()
     initPubTopicChan,
     postController.addPost
   ])
-  .patch(`${process.env.BASE_ROUTE}/post/:slug`, [
+  .patch(`${process.env.BASE_ROUTE}/post`, [
     initPubTopicChan,
     postController.patchPost
   ])
-  .put(`${process.env.BASE_ROUTE}/post/:slug`, [
-    initPubTopicChan,
-    postController.updatePost
-  ])
-  .delete(`${process.env.BASE_ROUTE}/post/:slug`, [
+  .delete(`${process.env.BASE_ROUTE}/post/:id`, [
     initPubTopicChan,
     postController.deletePost
   ]);

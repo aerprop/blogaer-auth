@@ -22,7 +22,12 @@ export default async function handleGetPostById(
       replyTo: queue,
       correlationId
     });
-    const timeout = setTimeout(() => res.sendStatus(408), 5000);
+    const timeout = setTimeout(() => {
+      return res.status(408).json({
+        status: 'Request timeout',
+        error: 'Server took too long to respond!'
+      });
+    }, 5000);
 
     await consumerChan.consume(
       queue,
@@ -31,7 +36,7 @@ export default async function handleGetPostById(
           if (msg.properties.correlationId !== correlationId) return;
 
           const post: Post = JSON.parse(msg.content.toString());
-          if (!post.userId) return;
+          if (!post || !post.userId) return;
 
           const user = await getUserById(post.userId);
           delete post.userId;
@@ -45,7 +50,6 @@ export default async function handleGetPostById(
             status: 'Success',
             data
           });
-          consumerChan.ack(msg);
           await closeChannel(timeout, consumerChan);
         } else {
           console.log('At handleGetPostById.ts >>', 'Message is empty!');

@@ -9,20 +9,20 @@ async function createPubTopicChan(): Promise<amqp.Channel> {
 
   pubChanTopicPromise = (async () => {
     try {
-      const connection = await connectRabbitMQ();
+      const connection = await connectRabbitMQ;
       const channel = await connection.createChannel();
-      await channel.assertExchange(ExchangeName.Topic, ExchangeType.Direct, {
+      await channel.assertExchange(ExchangeName.Topic, ExchangeType.Topic, {
         durable: false,
-        autoDelete: true
+        autoDelete: false
       });
       channel.on('close', () => {
         console.warn(
-          'Publisher channel closed. Will re-initialize on next access.'
+          'Publisher topic channel closed. Will re-initialize on next access.'
         );
         pubChanTopicPromise = null;
       });
       channel.on('error', (err) => {
-        console.error('Publisher Topic channel error:', err);
+        console.error('Publisher topic channel error:', err);
         pubChanTopicPromise = null;
       });
 

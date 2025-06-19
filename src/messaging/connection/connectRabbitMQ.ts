@@ -49,4 +49,4 @@ async function connectRabbitMQ(retries = 0) {
   return rabbitMQConnPromise;
 }
 
-export default connectRabbitMQ;
+export default connectRabbitMQ();

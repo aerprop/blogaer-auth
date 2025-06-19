@@ -31,7 +31,12 @@ const oauth2Controller = {
         replyTo: queue,
         correlationId
       });
-      const timeout = setTimeout(() => res.sendStatus(408), 5000);
+      const timeout = setTimeout(() => {
+        return res.status(408).json({
+          status: 'Request timeout',
+          error: 'Server took too long to respond!'
+        });
+      }, 5000);
 
       await consumerChan.consume(queue, async (msg) => {
         if (msg) {
@@ -148,7 +153,12 @@ const oauth2Controller = {
         replyTo: queue,
         correlationId
       });
-      const timeout = setTimeout(() => res.sendStatus(408), 5000);
+      const timeout = setTimeout(() => {
+        return res.status(408).json({
+          status: 'Request timeout',
+          error: 'Server took too long to respond!'
+        });
+      }, 5000);
 
       await consumerChan.consume(queue, async (msg) => {
         if (msg) {

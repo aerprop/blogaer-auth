@@ -24,16 +24,11 @@ export enum OauthProvider {
   Microsoft = 'Microsoft'
 }
 
-export enum ChannelType {
-  Publisher = 'publisher',
-  Consumer = 'consumer'
-}
-
 export enum ExchangeName {
-  Direct = 'directExchange',
-  Rpc = 'rpcExchange',
-  Topic = 'topicExchange',
-  Fanout = 'fanoutExchange'
+  Direct = 'DirectExchange',
+  Rpc = 'RpcExchange',
+  Topic = 'TopicExchange',
+  Fanout = 'FanoutExchange'
 }
 
 export enum ExchangeType {

@@ -9,7 +9,7 @@ export default async function verifyOauthCode(
   if (!header?.startsWith('Oauth2')) {
     return res.status(401).json({
       status: 'Unauthorized',
-      message: "Code Doesn't start with Oauth2."
+      message: "Code Doesn't start with Oauth2!"
     });
   }
   const code = header.split(' ')[1];

@@ -9,7 +9,7 @@ async function createConsumerChan(): Promise<amqp.Channel> {
 
   pubChanRpcPromise = (async () => {
     try {
-      const connection = await connectRabbitMQ();
+      const connection = await connectRabbitMQ;
       const channel = await connection.createChannel();
       await channel.assertExchange(ExchangeName.Rpc, ExchangeType.Direct, {
         durable: false,
@@ -17,17 +17,12 @@ async function createConsumerChan(): Promise<amqp.Channel> {
       });
       channel.on('close', () => {
         console.warn(
-          'At createConsumerChan.ts >> ',
-          'Consumer channel closed. Will re-initialize on next access.'
+          'Consumer rpc channel closed. Will re-initialize on next access.'
         );
         pubChanRpcPromise = null;
       });
       channel.on('error', (err) => {
-        console.error(
-          'At createConsumerChan.ts >> ',
-          'Consumer rpc channel error:',
-          err
-        );
+        console.error('Consumer rpc channel error:', err);
         pubChanRpcPromise = null;
       });
 

@@ -1,9 +1,9 @@
 import { Channel } from 'amqplib';
 import { Response } from 'express';
-import { Post } from '../../../types/dto/Post';
 import { closeChannel, getUserById } from '../../../utils/helper';
 import { ExchangeName } from '../../../utils/enums';
-// import { nanoid } from 'nanoid';
+import { nanoid } from 'nanoid';
+import { Draft } from '../../../types/dto/Draft';
 
 export default async function handleGetDraftById(
   res: Response,
@@ -17,22 +17,32 @@ export default async function handleGetDraftById(
       durable: false
     });
 
-    // const correlationId = nanoid(9);
+    const correlationId = nanoid(9);
     publisherChan.publish(ExchangeName.Rpc, 'draft.get.by.id.key', message, {
       persistent: false,
-      replyTo: queue
-      // correlationId
+      replyTo: queue,
+      correlationId
     });
-    const timeout = setTimeout(() => res.sendStatus(408), 5000);
+    const timeout = setTimeout(() => {
+      return res.status(408).json({
+        status: 'Request timeout',
+        error: 'Server took too long to respond!'
+      });
+    }, 5000);
 
     await consumerChan.consume(
       queue,
       async (msg) => {
         if (msg) {
-          // if (msg.properties.correlationId !== correlationId) return;
+          if (msg.properties.correlationId !== correlationId) return;
 
-          const draft: Post = JSON.parse(msg.content.toString());
-          if (!draft.userId) return;
+          const draft: Draft = JSON.parse(msg.content.toString());
+          if (!draft.userId) {
+            return res.status(404).json({
+              status: 'Not Found',
+              error: 'Draft not found!'
+            });
+          }
 
           const user = await getUserById(draft.userId);
           delete draft.userId;
@@ -46,7 +56,6 @@ export default async function handleGetDraftById(
             status: 'Success',
             data
           });
-          consumerChan.ack(msg);
           await closeChannel(timeout, consumerChan);
         } else {
           console.log('At handleGetDraftById.ts >>', 'Message is empty!');

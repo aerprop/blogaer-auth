@@ -1,4 +1,4 @@
-import { routerInit } from '../../router';
+import { router } from '../../router';
 import validateRequest from '../../../middlewares/validateRequest';
 import registerController from '../../../controllers/auth/registerController';
 import loginController from '../../../controllers/auth/login/loginController';
@@ -7,7 +7,7 @@ import verifyOauthCode from '../../../middlewares/auth/verifyOauthCode';
 import authValidations from '../../../middlewares/auth/authValidations';
 import oauth2Controller from '../../../controllers/auth/login/oauth2Controller';
 
-const authPublicRoute = routerInit
+const authPublicRoute = router()
   .post(`${process.env.BASE_ROUTE}/auth/register`, [
     ...authValidations.registerValidations,
     validateRequest,

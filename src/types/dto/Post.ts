@@ -1,20 +1,21 @@
 type Comment = {
-  commentId: string;
-  commentText: string;
+  id: string;
+  text: string;
 };
-type Reaction = {
-  reactionId: string;
-  reactionList: string[];
+type Thought = {
+  id: string;
+  thoughts: string[];
 };
 export type Post = {
   id: string;
   userId?: string;
   title: string;
+  text: string;
   content: any[];
   categories: string[];
   tags: string[];
   comments: Comment[];
-  reactions: Reaction[];
+  thoughts: Thought[];
   createdAt: string;
   updatedAt: string;
 };
