@@ -14,12 +14,10 @@ import authPublicRoute from './public/auth/authPublicRoute';
 import authAppPublicRoute from './public/auth/two-fa/authAppPublicRoute';
 import emailRoute from './protected/emailRoute';
 import semiProtectedRoute from './semi/semiProtectedRoute';
-import oauth2Route from './public/auth/two-fa/oauth2Route';
 
 const routes = {
   public: [
     savedAccountsRoute,
-    oauth2Route,
     authPublicRoute,
     authAppPublicRoute,
     webAuthnPublicRoute,

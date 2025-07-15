@@ -28,9 +28,10 @@ const draftController = {
   },
   patchDraft(req: Request, res: Response) {
     const { publisherChan, userId } = req;
-    const { id, title, text, content, tags } = req.body;
+    const { id, title, text, content } = req.body;
+    console.log('DRAFT ID >>', id);
     const message = Buffer.from(
-      JSON.stringify({ id, userId, text, title: title.trim(), content, tags })
+      JSON.stringify({ id, userId, text, title: title.trim(), content })
     );
     handlePatchDraft(res, publisherChan, message);
   },

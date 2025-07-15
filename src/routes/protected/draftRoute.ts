@@ -18,7 +18,7 @@ const draftRoute = router()
     initPubConChan,
     draftController.addDraft
   ])
-  .patch(`${process.env.BASE_ROUTE}/draft/`, [
+  .patch(`${process.env.BASE_ROUTE}/draft`, [
     initPubTopicChan,
     draftController.patchDraft
   ])

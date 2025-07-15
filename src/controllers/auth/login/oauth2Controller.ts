@@ -52,6 +52,7 @@ const oauth2Controller = {
           }
 
           const userInfo = JSON.parse(msg.content.toString());
+          console.log(userInfo);
           const [user, isCreated] = await model.user.findOrCreate({
             where: {
               email: userInfo.email

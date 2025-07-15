@@ -39,7 +39,7 @@ export default async function handleAddPost(
           if (!id) {
             return res.status(404).json({
               status: 'Not Found',
-              error: 'draft not found!'
+              error: 'Post not found!'
             });
           }
 
@@ -49,7 +49,7 @@ export default async function handleAddPost(
           });
           await closeChannel(timeout, consumerChan);
         } else {
-          console.log('At handleAddDraft.ts >>', 'Message is empty!');
+          console.log('At handleAddPost.ts >>', 'Message is empty!');
 
           res.sendStatus(204);
           await closeChannel(timeout, consumerChan);
@@ -59,7 +59,7 @@ export default async function handleAddPost(
     );
   } catch (error) {
     console.error(
-      'At handleAddDraft.ts >>',
+      'At handleAddPost.ts >>',
       error instanceof Error ? error.message : 'Unexpected error occurred!'
     );
 

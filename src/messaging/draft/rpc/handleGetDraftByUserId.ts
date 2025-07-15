@@ -1,6 +1,5 @@
 import { Channel } from 'amqplib';
 import { Response } from 'express';
-import { PagedPost } from '../../../types/dto/PagedPost';
 import { ExchangeName } from '../../../utils/enums';
 import { nanoid } from 'nanoid';
 import { closeChannel } from '../../../utils/helper';

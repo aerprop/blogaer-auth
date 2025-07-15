@@ -27,6 +27,8 @@ const savedAccountsController = {
       }
     });
 
+    console.log('USER AGENT >>', req.headers['user-agent'])
+
     const { clientId } = generateClientId(req.headers['user-agent']);
     if (!clientId) {
       return res
